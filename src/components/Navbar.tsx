@@ -24,7 +24,7 @@ export default class extends Component {
                         <SearchBar />
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <div className="credits" style={{ display: 'flex', alignItems: 'center', marginRight: '1rem', gap: '4px' }}>
-                                <img src="/credit.png" style={{width: '24px', height:'24px', marginLeft: "4px" }}/>
+                                <img src="./credit.png" style={{width: '24px', height:'24px', marginLeft: "4px" }}/>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <span id="my-balance">0</span>
                                     <span style={{marginLeft: "4px"}}>Credits</span>
@@ -37,7 +37,7 @@ export default class extends Component {
                                 location.reload();
                             }}
                             >Log off</button>
-                            <Link to="/profile/@me">
+                            <Link to="/profile?user=me">
                                 <img 
                                 style={{width: '32px', height:'32px', marginLeft: "16px", borderRadius: "50%"}}
                                 src={`https://croissant-api.fr/avatar/${window.me.userId}`}

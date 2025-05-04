@@ -189,7 +189,7 @@ export default function LobbyPage() {
                                                                 padding: 0,
                                                                 font: "inherit",
                                                             }}
-                                                            onClick={() => navigate("/profile/" + user.id)}
+                                                            onClick={() => navigate("/profile?user=" + user.id)}
                                                         >
                                                             <img style={{
                                                                 width: 32,

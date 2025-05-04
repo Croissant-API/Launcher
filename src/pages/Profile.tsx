@@ -171,7 +171,7 @@ export default function Profile({ user }: ProfileProps) {
                             <div style={{ color: "#bcbcbc", marginTop: 8 }}>
                                 Creator:{" "}
                                 <Link
-                                    to={`/profile/${selectedItem.owner}`}
+                                    to={`/profile?user=${selectedItem.owner}`}
                                     style={{
                                         color: "white",
                                         textDecoration: "underline",

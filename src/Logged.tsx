@@ -13,11 +13,13 @@ import Profile from "./pages/Profile";
 import SearchPage from "./pages/SearchPage";
 
 import "./styles/main.css";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 function ProfileWrapper() {
-  const { userId } = useParams();
-  return <Profile user={userId ?? ""} />;
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const user = params.get("user") || "";
+  return <Profile user={user} />;
 }
 
 export default class extends Component {
@@ -32,8 +34,7 @@ export default class extends Component {
               <Route path="/shop" element={<Shop />} />
               <Route path="/buy-credits" element={<Credits />} />
               <Route path="/inventory" element={<Inventory />} />
-              <Route path="/profile/@me" element={<Profile user="me" />} />
-              <Route path="/profile/:userId" element={<ProfileWrapper />} />
+              <Route path="/profile" element={<ProfileWrapper />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,9 +1,27 @@
 import { app, BrowserWindow, ipcMain, Tray, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 import { WebSocketServer } from "ws";
 import open from 'open';
+import express from 'express';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const PORT = 4536;
+
+let win;
+let tray;
+
+const server = express();
+
+server.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, "build",'index.html'));
+});
+server.use(express.static(path.join(__dirname, 'build')));
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
 // WebSocket server setup
 const wss = new WebSocketServer({ port: 8081 }); // Choose a port
 
@@ -22,14 +40,6 @@ wss.on("connection", (ws) => {
       }
     });
 });
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const PORT = 4536;
-
-let win;
-let tray;
 
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();

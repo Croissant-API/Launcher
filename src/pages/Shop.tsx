@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { endpoint, url } from "../config/config";
 import fetchMe from "../utils/fetchMe";
+import { Link } from "react-router-dom";
 
 export interface ShopItem {
     itemId: string;
@@ -340,8 +341,8 @@ export default class extends Component<{}, State> {
                                         {(prompt.item as any).owner && this.state.promptOwnerUser && (
                                             <div style={{ color: "#bcbcbc", marginTop: 8 }}>
                                                 Creator:{" "}
-                                                <a
-                                                    href={`/profile/${(prompt.item as any).owner}`}
+                                                <Link
+                                                    to={`/profile?user=${(prompt.item as any).owner}`}
                                                     style={{
                                                         color: "white",
                                                         textDecoration: "underline",
@@ -357,7 +358,7 @@ export default class extends Component<{}, State> {
                                                         top: 6,
                                                     }} src={url + "/avatar/" + (prompt.item as any).owner }/>
                                                     {this.state.promptOwnerUser.global_name || this.state.promptOwnerUser.username}
-                                                </a>
+                                                </Link>
                                             </div>
                                         )}
                                     </div>

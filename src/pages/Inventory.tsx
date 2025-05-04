@@ -280,7 +280,7 @@ export default class extends Component<{}, State> {
                             <div style={{ color: "#bcbcbc", marginBottom: 16 }}>{selectedItem.description}</div>
                             <div style={{ fontWeight: 600, fontSize: 18 }}>Quantity: x{selectedItem.amount}</div>
                             {selectedItem.price !== undefined && (
-                                <div style={{ color: "#bcbcbc", marginTop: 8 }}>Price: {selectedItem.price} <img src="/credit.png" style={{
+                                <div style={{ color: "#bcbcbc", marginTop: 8 }}>Price: {selectedItem.price} <img src="./credit.png" style={{
                                     width: "18px",
                                     position: "relative",
                                     top: "4px",
@@ -291,7 +291,7 @@ export default class extends Component<{}, State> {
                                 <div style={{ color: "#bcbcbc", marginTop: 8 }}>
                                     Creator:{" "}
                                     <Link
-                                        to={`/profile/${selectedItem.owner}`}
+                                        to={`/profile?user=${selectedItem.owner}`}
                                         style={{
                                             color: "white",
                                             textDecoration: "underline",
