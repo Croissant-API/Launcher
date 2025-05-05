@@ -1,7 +1,7 @@
-const DiscordRPC = require('discord-rpc');
+import DiscordRPC from 'discord-rpc';
 
 const clientId = "1324530344900431923";
-try{
+try {
     DiscordRPC.register(clientId);
     const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 

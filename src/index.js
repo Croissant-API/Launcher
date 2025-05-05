@@ -1,4 +1,4 @@
-const { updateElectronApp } = require('update-electron-app');
+import { updateElectronApp } from 'update-electron-app';
 updateElectronApp();
 
 import { startApp } from "./app/app.js";
