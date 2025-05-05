@@ -1,58 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/Library.css";
+import { endpoint } from "../config/config";
 
-const games = [
-    {
-        id: 1,
-        gameId: "game-001",
-        name: "Space Adventure",
-        description: "Explore the universe in this thrilling space game.",
-        price: 29.99,
-        ownerId: "user-123",
-        showInStore: true,
-        image: "https://placehold.co/600x300?text=Space+Adventure",
-    },
-    {
-        id: 2,
-        gameId: "game-002",
-        name: "Mystery Mansion",
-        description: "Solve puzzles in a haunted mansion.",
-        price: 19.99,
-        ownerId: "user-123",
-        showInStore: true,
-        image: "https://placehold.co/600x300?text=Mystery+Mansion",
-    },
-    {
-        id: 3,
-        gameId: "game-003",
-        name: "Racing Thunder",
-        description: "High-speed racing action with stunning graphics.",
-        price: 24.99,
-        ownerId: "user-123",
-        showInStore: false,
-        image: "https://placehold.co/600x300?text=Racing+Thunder",
-    },
-];
-
-type Game = typeof games[0];
+type Game = {
+    id?: number;
+    gameId: string;
+    name: string;
+    description: string;
+    price: number;
+    ownerId: string;
+    showInStore: boolean;
+    image?: string;
+};
 
 const Library: React.FC = () => {
-    const [selected, setSelected] = useState<Game>(games[0]);
+    const [games, setGames] = useState<Game[]>([]);
+    const [selected, setSelected] = useState<Game | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Remplace l'URL par celle de ton backend si besoin
+        fetch(endpoint + "/games/list/@me", { 
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+         })
+            .then(async (res) => {
+                if (!res.ok) throw new Error("Erreur lors du chargement des jeux");
+                return res.json();
+            })
+            .then((data) => {
+                setGames(data);
+                setSelected(data[0] || null);
+                setLoading(false);
+            })
+            .catch((err) => {
+                setError(err.message);
+                setLoading(false);
+            });
+    }, []);
 
     const handlePlay = () => {
-        if (!isPlaying && selected.showInStore) {
+        if (!isPlaying && selected && selected.showInStore) {
             setIsPlaying(true);
-            // Simule la fin du jeu après 5 secondes
             setTimeout(() => setIsPlaying(false), 5000);
         }
     };
 
-    // Si on change de jeu, on arrête "en jeu"
     const handleSelect = (game: Game) => {
         setSelected(game);
         setIsPlaying(false);
     };
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div style={{ color: "red" }}>{error}</div>;
+    if (!selected) return <div>No games found.</div>;
 
     return (
         <div className="steam-library-layout">
@@ -61,18 +67,26 @@ const Library: React.FC = () => {
                 <ul className="sidebar-list">
                     {games.map((game) => (
                         <li
-                            key={game.id}
-                            className={`sidebar-game ${selected.id === game.id ? "selected" : ""}`}
+                            key={game.gameId}
+                            className={`sidebar-game ${selected.gameId === game.gameId ? "selected" : ""}`}
                             onClick={() => handleSelect(game)}
                         >
-                            <img src={game.image} alt={game.name} className="sidebar-thumb" />
+                            <img
+                                src={game.image || "https://placehold.co/600x300?text=No+Image"}
+                                alt={game.name}
+                                className="sidebar-thumb"
+                            />
                             <span>{game.name}</span>
                         </li>
                     ))}
                 </ul>
             </aside>
             <main className="steam-library-main">
-                <img src={selected.image} alt={selected.name} className="main-splash" />
+                <img
+                    src={selected.image || "https://placehold.co/600x300?text=No+Image"}
+                    alt={selected.name}
+                    className="main-splash"
+                />
                 <div className="main-details">
                     <h2>{selected.name}</h2>
                     <p>{selected.description}</p>
