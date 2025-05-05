@@ -1,6 +1,9 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 module.exports = {
   publishers: [
     {
@@ -8,7 +11,7 @@ module.exports = {
       config: {
         repository: {
           owner: 'Croissant-API',
-          name: 'launcher'
+          name: 'Croissant-Launcher'
         },
         prerelease: true
       }
