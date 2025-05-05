@@ -1,0 +1,147 @@
+.library-steam-bg {
+    background: #181a21;
+    min-height: 100vh;
+    padding: 32px;
+    color: #fff;
+}
+.library-title {
+    font-size: 2rem;
+    margin-bottom: 24px;
+    color: #66c0f4;
+}
+.library-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+.library-card {
+    background: #23262e;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 350px;
+    box-shadow: 0 2px 8px #000a;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+.library-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px #000c;
+}
+.library-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+.library-card-content {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.library-play-btn {
+    margin-top: 16px;
+    background: #444a57;
+    color: #fff;
+    border: none;
+    padding: 12px 0;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 180px;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px #0006;
+    letter-spacing: 1px;
+}
+
+.library-play-btn.can-play {
+    background: #3cbf7f; /* Vert Steam */
+    color: #fff;
+}
+
+.library-play-btn.playing {
+    background: #3a8fdc; /* Bleu Steam */
+    color: #fff;
+}
+
+.library-play-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.steam-library-layout {
+    display: flex;
+    height: 80vh;
+    background: #181a21;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px #000a;
+}
+.steam-library-sidebar {
+    width: 260px;
+    background: #23262e;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #222;
+}
+.sidebar-title {
+    color: #66c0f4;
+    font-size: 1.2rem;
+    margin: 0 0 16px 24px;
+    letter-spacing: 1px;
+}
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+.sidebar-game {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 24px;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+    color: #fff;
+}
+.sidebar-game.selected,
+.sidebar-game:hover {
+    background: #1b2838;
+    border-left: 4px solid #66c0f4;
+}
+.sidebar-thumb {
+    width: 48px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #111;
+}
+.steam-library-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 32px;
+    background: #181a21;
+}
+.main-splash {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px #000a;
+}
+.main-details {
+    color: #fff;
+    max-width: 600px;
+}
+.main-details h2 {
+    color: #66c0f4;
+    margin-bottom: 8px;
+}

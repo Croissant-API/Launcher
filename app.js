@@ -15,13 +15,16 @@ let tray;
 
 const server = express();
 
-server.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, "build",'index.html'));
-});
-server.use(express.static(path.join(__dirname, 'build')));
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// server.get('/', (req, res) => {
+//   res.sendFile(path.join(__dirname, "build",'index.html'));
+// });
+// server.use(express.static(path.join(__dirname, 'build')));
+// server.use((_req, res) => {
+//     res.sendFile(path.join(__dirname, "build", "index.html"));
+// });
+// server.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
 // WebSocket server setup
 const wss = new WebSocketServer({ port: 8081 }); // Choose a port
 

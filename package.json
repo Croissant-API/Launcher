@@ -10,6 +10,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "croissant-launcher": "file:",
     "open": "^10.1.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
