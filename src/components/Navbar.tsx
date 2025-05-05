@@ -27,22 +27,25 @@ export default class extends Component {
                                 <img src="./credit.png" style={{width: '24px', height:'24px', marginLeft: "4px" }}/>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <span id="my-balance">0</span>
-                                    <span style={{marginLeft: "4px"}}>Credits</span>
+                                    {/* <span style={{marginLeft: "4px"}}>Credits</span> */}
                                 </div>
                             </div>
-                            <button className="method delete"
+                            <Link to="/profile?user=me">
+                                <img 
+                                style={{width: '32px', height:'32px', marginRight: "16px", borderRadius: "50%"}}
+                                src={`https://croissant-api.fr/avatar/${window.me.userId}`}
+                                />
+                            </Link>
+                            <button className="method"
+                            style={{
+                                color: "red"
+                            }}
                             onClick={() => {
                                 localStorage.removeItem("token");
                                 localStorage.removeItem("verificationKey");
                                 location.reload();
                             }}
-                            >Log off</button>
-                            <Link to="/profile?user=me">
-                                <img 
-                                style={{width: '32px', height:'32px', marginLeft: "16px", borderRadius: "50%"}}
-                                src={`https://croissant-api.fr/avatar/${window.me.userId}`}
-                                />
-                            </Link>
+                            ><i className="fa fa-sign-out"></i></button>
                         </div>
                     </nav>
                 </header>

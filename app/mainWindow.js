@@ -7,7 +7,7 @@ import { PORT } from './server.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const devEnv = true;
+const devEnv = false;
 const PORT_TO_SERVE = !devEnv ? PORT : 4536;
 
 let win;
@@ -49,6 +49,16 @@ export function createMainWindow() {
 
 export function loginToken(token) {
     win.webContents.send("set-token", token.toString());
+    win.show();
+    win.focus();
+
+    // Bring window to foreground
+    win.setAlwaysOnTop(true, 'screen');
+    setTimeout(() => win.setAlwaysOnTop(false), 1000);
+}
+
+export function joinLobby(lobbyId) {
+    win.webContents.send("join-lobby", lobbyId);
     win.show();
     win.focus();
 

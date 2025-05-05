@@ -175,7 +175,7 @@ const Library: React.FC = () => {
 
     const handlePlay = () => {
         if (selected && selected.state === "installed") {
-            ws.send(JSON.stringify({ action: "playGame", gameId: selected.gameId }));
+            ws.send(JSON.stringify({ action: "playGame", gameId: selected.gameId, playerId: window.me.userId, verificationKey: localStorage.getItem("verificationKey") }));
             setIsPlaying(true);
             // Optionally update selected.state to "playing"
         }
@@ -201,79 +201,94 @@ const Library: React.FC = () => {
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div style={{ color: "red" }}>{error}</div>;
-    if (!selected) return <div>No games found.</div>;
 
     return (
         <div className="steam-library-layout">
             <aside className="steam-library-sidebar">
                 <h3 className="sidebar-title">Games</h3>
-                <ul className="sidebar-list">
-                    {games.map((game) => (
-                        <li
-                            key={game.gameId}
-                            className={`sidebar-game ${selected.gameId === game.gameId ? "selected" : ""}`}
-                            onClick={() => handleSelect(game)}
-                        >
-                            <img
-                                src={game.image || "https://placehold.co/600x300?text=No+Image"}
-                                alt={game.name}
-                                className="sidebar-thumb"
-                            />
-                            <span>{game.name}</span>
-                        </li>
-                    ))}
-                </ul>
+                {games.length === 0 ? (
+                    <div className="sidebar-empty"></div>
+                ) : (
+                    <ul className="sidebar-list">
+                        {games.map((game) => (
+                            <li
+                                key={game.gameId}
+                                className={`sidebar-game 
+                                    ${selected && selected.gameId === game.gameId ? "selected" : ""}
+                                    ${game.state === "not_installed" ? "not-installed" : ""}
+                                    ${game.state === "installed" ? "installed" : ""}
+                                    ${game.state === "to_update" ? "to-update" : ""}
+                                    ${game.state === "playing" ? "playing" : ""}
+                                `}
+                                onClick={() => handleSelect(game)}
+                            >
+                                <img
+                                    src={game.image || "https://placehold.co/600x300?text=No+Image"}
+                                    alt={game.name}
+                                    className="sidebar-thumb"
+                                />
+                                <span>{game.name}</span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </aside>
             <main className="steam-library-main">
-                <img
-                    src={selected.image || "https://placehold.co/600x300?text=No+Image"}
-                    alt={selected.name}
-                    className="main-splash"
-                />
-                <div className="main-details">
-                    <h2>{selected.name}</h2>
-                    <p>{selected.description}</p>
-                    {selected.state === "not_installed" && (
-                        <button
-                            className="library-play-btn can-install"
-                            onClick={handleInstall}
-                        >
-                            Install
-                        </button>
-                    )}
-                    {selected.state === "to_update" && (
-                        <button
-                            className="library-play-btn can-update"
-                            onClick={handleUpdate}
-                        >
-                            Update
-                        </button>
-                    )}
-                    {selected.state === "installed" && (
-                        <>
-                            <button
-                                className={`library-play-btn can-play`}
-                                onClick={handlePlay}
-                                disabled={isPlaying}
-                            >
-                                {isPlaying ? "In Game" : "Play"}
-                            </button>
-                            <button
-                                className="library-play-btn can-delete"
-                                onClick={handleDelete}
-                                disabled={isPlaying}
-                                style={{ marginLeft: 8, background: "#c0392b", color: "#fff" }}
-                            >
-                                Delete
-                            </button>
-                        </>
-                    )}
-                    {selected.state === "playing" && (
-                        <button className="library-play-btn playing" disabled>
-                            In Game
-                        </button>
-                    )}
-                </div>
+                {!selected ? (
+                    <div className="main-empty">Please select a game.</div>
+                ) : (
+                    <>
+                        <img
+                            src={selected.image || "https://placehold.co/600x300?text=No+Image"}
+                            alt={selected.name}
+                            className="main-splash"
+                        />
+                        <div className="main-details">
+                            <h2>{selected.name}</h2>
+                            <p>{selected.description}</p>
+                            {selected.state === "not_installed" && (
+                                <button
+                                    className="library-play-btn can-install"
+                                    onClick={handleInstall}
+                                >
+                                    Install
+                                </button>
+                            )}
+                            {selected.state === "to_update" && (
+                                <button
+                                    className="library-play-btn can-update"
+                                    onClick={handleUpdate}
+                                >
+                                    Update
+                                </button>
+                            )}
+                            {selected.state === "installed" && (
+                                <>
+                                    <button
+                                        className={`library-play-btn can-play`}
+                                        onClick={handlePlay}
+                                        disabled={isPlaying}
+                                    >
+                                        {isPlaying ? "In Game" : "Play"}
+                                    </button>
+                                    <button
+                                        className="library-play-btn can-delete"
+                                        onClick={handleDelete}
+                                        disabled={isPlaying}
+                                        style={{ marginLeft: 8, background: "#c0392b", color: "#fff" }}
+                                    >
+                                        Delete
+                                    </button>
+                                </>
+                            )}
+                            {selected.state === "playing" && (
+                                <button className="library-play-btn playing" disabled>
+                                    In Game
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )}
             </main>
         </div>
     );

@@ -62,13 +62,26 @@
 }
 
 .library-play-btn.playing {
-    background: #3a8fdc; /* Bleu Steam */
+    background: #3cbf7f; /* Bleu Steam */
     color: #fff;
 }
 
 .library-play-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+.library-play-btn.can-install {
+    background: #888;
+    color: #fff;
+}
+.library-play-btn.can-update {
+    background: #2196f3;
+    color: #fff;
+}
+.library-play-btn.can-delete {
+    background: #c0392b;
+    color: #fff;
 }
 
 .steam-library-layout {
@@ -113,7 +126,23 @@
 .sidebar-game.selected,
 .sidebar-game:hover {
     background: #1b2838;
-    border-left: 4px solid #66c0f4;
+    /* border-left: 4px solid #66c0f4; */
+}
+.sidebar-game.not-installed {
+    color: #888;
+    /* background: #f0f0f0; */
+}
+.sidebar-game.installed {
+    color: #fff;
+    /* background: #222; */
+}
+.sidebar-game.to-update {
+    color: #2196f3;
+    /* background: #e3f2fd; */
+}
+.sidebar-game.playing {
+    color: #3cbf7f;
+    /* background: #eafaf1; */
 }
 .sidebar-thumb {
     width: 48px;

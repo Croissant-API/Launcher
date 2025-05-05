@@ -6,15 +6,16 @@
   "scripts": {
     "start": "electron .",
     "dev": "npx electronmon . --watch",
-    "build": "webpack --config webpack.config.js",
+    "webpack": "webpack --config webpack.config.js",
     "start-dev": "set PORT=4536 && react-scripts start",
-    "start-prod": "set PORT=4536 && react-scripts build",
+    "build": "set PORT=4536 && react-scripts build",
     "start-test": "set PORT=4536 && react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "croissant-launcher": "file:",
+    "discord-rpc": "^4.0.1",
     "node-fetch": "^2.7.0",
     "open": "^10.1.2",
     "react": "^19.1.0",

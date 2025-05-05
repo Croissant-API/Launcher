@@ -3,8 +3,10 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
-import { loginToken } from './mainWindow.js';
+import { loginToken, joinLobby } from './mainWindow.js';
 import { checkInstallationStatus } from './games.js';
+import { spawn } from 'child_process';
+import { BrowserWindow } from 'electron'; // Add this import at the top
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,14 +31,89 @@ export function setupWebSocket() {
                     }
                 }
                 if (data.action === "playGame") {
-                    const { gameId } = data;
+                    const { gameId, playerId, verificationKey } = data;
                     // Here, launch the game (e.g., spawn process)
                     ws.send(JSON.stringify({ action: "playing", gameId }));
 
                     // Trigger closeGame after 5 seconds
-                    setTimeout(() => {
+                    // setTimeout(() => {
+                    //     ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                    // }, 5000);
+
+                    const gamePath = path.join(gamesDir, gameId);
+                    let launchFile = null;
+                    const candidates = ['.exe', 'index.js', 'index.ts', 'index.html'];
+
+                    for (const candidate of candidates) {
+                        if (candidate === '.exe') {
+                            // Find the first .exe file in the game directory
+                            const files = fs.readdirSync(gamePath);
+                            const exeFile = files.find(f => f.endsWith('.exe'));
+                            if (exeFile) {
+                                launchFile = path.join(gamePath, exeFile);
+                                break;
+                            }
+                        } else {
+                            const filePath = path.join(gamePath, candidate);
+                            if (fs.existsSync(filePath)) {
+                                launchFile = filePath;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (launchFile) {
+                        let proc;
+                        if (launchFile.endsWith('.exe')) {
+                            proc = spawn(
+                                launchFile,
+                                [`--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`],
+                                { cwd: gamePath, detached: true, stdio: 'ignore' }
+                            );
+                            proc.unref();
+                            proc.on('exit', () => {
+                                ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                            });
+                        } else if (launchFile.endsWith('.js')) {
+                            proc = spawn(
+                                process.execPath,
+                                [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`],
+                                { cwd: gamePath, detached: true, stdio: 'ignore' }
+                            );
+                            proc.unref();
+                            proc.on('exit', () => {
+                                ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                            });
+                        } else if (launchFile.endsWith('.ts')) {
+                            proc = spawn(
+                                'ts-node',
+                                [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`],
+                                { cwd: gamePath, detached: true, stdio: 'ignore' }
+                            );
+                            proc.unref();
+                            proc.on('exit', () => {
+                                ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                            });
+                        } else if (launchFile.endsWith('.html')) {
+                            // Open in a new Electron BrowserWindow with query string
+                            const win = new BrowserWindow({
+                                width: 800,
+                                height: 600,
+                                autoHideMenuBar: true,
+                                webPreferences: {
+                                    nodeIntegration: true,
+                                    contextIsolation: false,
+                                }
+                            });
+                            win.loadURL(`file://${launchFile}?croissantId=${encodeURIComponent(playerId)}&croissantVerificationKey=${encodeURIComponent(verificationKey)}`);
+                            win.on('closed', () => {
+                                ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                            });
+                        }
+                    } else {
+                        ws.send(JSON.stringify({ action: "error", message: "No launchable file found for game " + gameId }));
                         ws.send(JSON.stringify({ action: "closeGame", gameId }));
-                    }, 5000);
+                    }
                 }
                 if (data.action === "closeGame") {
                     const { gameId } = data;
@@ -144,6 +221,10 @@ export function setupWebSocket() {
                 }
                 if (data.action === "set-token") {
                     loginToken(data.token);
+                }
+                if (data.action === "join-lobby") {
+                    const { lobbyId } = data;
+                    joinLobby(lobbyId);
                 }
                 // if (data.action === "getGameLaunchCommand") {
                 //     const { gameId } = data;

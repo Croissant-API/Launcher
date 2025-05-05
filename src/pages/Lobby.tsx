@@ -26,6 +26,7 @@ export default function LobbyPage() {
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(true);
+    const [tooltip, setTooltip] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const fetchLobby = (loading=true) => {
@@ -63,6 +64,11 @@ export default function LobbyPage() {
         })
         .catch(() => setLobby(null))
         .finally(() => setLoading(false));
+    };
+
+    const showTooltip = (msg: string) => {
+        setTooltip(msg);
+        setTimeout(() => setTooltip(null), 2000);
     };
 
     useEffect(() => {
@@ -131,6 +137,31 @@ export default function LobbyPage() {
 
     return (
         <>
+            {/* Tooltip notification */}
+            {tooltip && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 24,
+                        right: 24,
+                        background: "#222",
+                        color: "#fff",
+                        border: "1px solid #ccc",
+                        padding: "10px 20px",
+                        borderRadius: 8,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                        zIndex: 2000,
+                        fontWeight: "bold",
+                        fontSize: 16,
+                        pointerEvents: "none",
+                        transition: "opacity 0.2s",
+                        opacity: tooltip ? 1 : 0,
+                    }}
+                >
+                    <i className="fa fa-check-circle" style={{ color: "lime", marginRight: 8 }} aria-hidden="true"></i>
+                    {tooltip}
+                </div>
+            )}
             {isCollapsed ? (
                 <button
                     onClick={() => setIsCollapsed(false)}
@@ -221,13 +252,28 @@ export default function LobbyPage() {
                                                     </li>
                                                 ))}
                                             </ul>
-                                            <button
-                                                onClick={handleLeaveLobby}
-                                                disabled={actionLoading}
-                                                style={{ marginTop: 16 }}
-                                            >
-                                                {actionLoading ? "Leaving..." : "Leave Lobby"}
-                                            </button>
+                                            {/* Copy Lobby Link and Leave Lobby Buttons in a flex row */}
+                                            <div style={{ display: "flex", flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 8 }}>
+                                                <button
+                                                    onClick={async () => {
+                                                        const lobbyLink = "https://croissant-api.fr/join-lobby?lobbyId=" + lobby.lobbyId;
+                                                        try {
+                                                            await navigator.clipboard.writeText(lobbyLink);
+                                                            showTooltip("Lobby link copied!");
+                                                        } catch {
+                                                            showTooltip("Failed to copy link.");
+                                                        }
+                                                    }}
+                                                >
+                                                    Copy Lobby Link
+                                                </button>
+                                                <button
+                                                    onClick={handleLeaveLobby}
+                                                    disabled={actionLoading}
+                                                >
+                                                    {actionLoading ? "Leaving..." : "Leave Lobby"}
+                                                </button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div>
