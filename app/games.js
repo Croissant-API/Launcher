@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
 import { fileURLToPath } from 'url';
+import dns from 'dns';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,8 +41,19 @@ export const downloadGame = async (gameId, downloadUrl) => {
 
 const gamesToUpdate = new Set();
 
+const isOnline = () => {
+  return new Promise((resolve) => {
+    dns.lookup('github.com', (err) => {
+      resolve(!err);
+    });
+  });
+};
+
 const refreshGamesToUpdate = async () => {
   if (!fs.existsSync(gamesDir)) return;
+  const online = await isOnline();
+  if (!online) return; // Skip if offline
+
   const gameIds = fs.readdirSync(gamesDir).filter(f => fs.statSync(path.join(gamesDir, f)).isDirectory());
   for (const gameId of gameIds) {
     try {
