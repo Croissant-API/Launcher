@@ -28,8 +28,8 @@ export default function LobbyPage() {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const navigate = useNavigate();
 
-    const fetchLobby = () => {
-        setLoading(true);
+    const fetchLobby = (loading=true) => {
+        setLoading(loading);
         fetch(endpoint + "/lobbies/user/@me", {
             headers: {
                 "Content-Type": "application/json",
@@ -68,6 +68,19 @@ export default function LobbyPage() {
     useEffect(() => {
         fetchLobby();
     }, []);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | undefined;
+        if (!isCollapsed) {
+            // Poll every 10 seconds when collapsed
+            interval = setInterval(() => {
+                fetchLobby(false);
+            }, 1000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isCollapsed]);
 
     const handleCreateLobby = async () => {
         setActionLoading(true);
