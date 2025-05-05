@@ -1,6 +1,4 @@
 import { app } from 'electron';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { startServer } from './server.js';
 import { createMainWindow } from './mainWindow.js';
 import { createTray } from './tray.js';
@@ -8,9 +6,6 @@ import { setupWebSocket } from './websocket.js';
 import { ensureGamesDir } from './games.js';
 import { ipcMain } from 'electron';
 import open from 'open';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export function startApp() {
   // Ensure games directory exists

@@ -1,12 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
-import { fileURLToPath } from 'url';
 import dns from 'dns';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const gamesDir = path.join(__dirname, "..", 'games');
+const gamesDir = path.join(process.cwd(), 'games');
 
 export const ensureGamesDir = () => {
   if (!fs.existsSync(gamesDir)) {
