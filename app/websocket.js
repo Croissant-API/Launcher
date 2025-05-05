@@ -1,5 +1,4 @@
 import { WebSocketServer } from "ws";
-import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
@@ -8,9 +7,7 @@ import { checkInstallationStatus } from './games.js';
 import { spawn } from 'child_process';
 import { BrowserWindow } from 'electron'; // Add this import at the top
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const gamesDir = path.join(__dirname, '..' ,'games');
+const gamesDir = path.join(process.cwd(), 'games');
 
 export function setupWebSocket() {
     const wss = new WebSocketServer({ port: 8081 });
