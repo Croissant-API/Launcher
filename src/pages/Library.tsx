@@ -225,21 +225,17 @@ const Library: React.FC = () => {
                         {games.map((game) => (
                             <li
                                 key={game.gameId}
-                                className={`sidebar-game 
-                                    ${selected && selected.gameId === game.gameId ? "selected" : ""}
-                                    ${game.state === "not_installed" ? "not-installed" : ""}
-                                    ${game.state === "installed" ? "installed" : ""}
-                                    ${game.state === "to_update" ? "to-update" : ""}
-                                    ${game.state === "playing" ? "playing" : ""}
-                                `}
+                                className={[`sidebar-game`,
+                                    selected && selected.gameId === game.gameId ? "selected" : "",
+                                    game.state === "not_installed" ? "not-installed" : "",
+                                    game.state === "installed" ? "installed" : "",
+                                    game.state === "to_update" ? "to-update" : "",
+                                    game.state === "playing" ? "playing" : "",
+                                ].filter(i=> !!i).join(" ").trim()}
                                 onClick={() => handleSelect(game)}
                             >
                                 <img
-                                    src={
-                                        game.iconHash
-                                            ? url + `/games-icons/${game.iconHash}`
-                                            : "https://placehold.co/600x300?text=No+Image"
-                                    }
+                                    src={ url + `/games-icons/${game.iconHash}` }
                                     alt={game.name}
                                     className="sidebar-thumb"
                                 />
@@ -255,11 +251,7 @@ const Library: React.FC = () => {
                 ) : (
                     <>
                         <img
-                            src={
-                                selected.bannerHash
-                                    ? url + `/banners-icons/${selected.bannerHash}`
-                                    : "https://placehold.co/600x300?text=No+Image"
-                            }
+                            src={url + `/banners-icons/${selected.bannerHash}`}
                             alt={selected.name}
                             className="main-splash"
                         />

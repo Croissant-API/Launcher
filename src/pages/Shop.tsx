@@ -8,7 +8,8 @@ export interface ShopItem {
     name: string;
     description: string;
     price: number;
-    stock?: number; // optionnel, si le backend le fournit
+    stock?: number; // optionnel, si le backend le fournit,
+    iconHash: string;
 }
 
 interface State {
@@ -24,6 +25,8 @@ interface State {
         item?: ShopItem;
     } | null;
     promptOwnerUser?: any | null; // <-- Add this line
+    games: any[]; // Ajouté pour la liste des jeux
+    alert?: { message: string } | null;
 }
 
 export default class extends Component<{}, State> {
@@ -34,10 +37,13 @@ export default class extends Component<{}, State> {
         tooltip: null,
         prompt: null,
         promptOwnerUser: null,
+        games: [], // Ajouté pour la liste des jeux
+        alert: null,
     };
 
     componentDidMount() {
         this.fetchShopItems();
+        this.fetchGames();
     }
 
     fetchShopItems = () => {
@@ -61,6 +67,26 @@ export default class extends Component<{}, State> {
         fetchMe(() => {
             document.getElementById("my-balance")!.innerText = window.me.balance.toString();
         });
+    };
+
+    fetchGames = () => {
+        fetch(endpoint + "/games", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + localStorage.getItem("token") || "",
+            },
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to fetch games");
+                return res.json();
+            })
+            .then((data) => {
+                this.setState({ games: data });
+            })
+            .catch((err) => {
+                // Optionnel : afficher une erreur pour les jeux
+            });
     };
 
     handleMouseEnter = (e: React.MouseEvent, item: ShopItem) => {
@@ -125,9 +151,10 @@ export default class extends Component<{}, State> {
                     amount: result.amount,
                 }),
             })
-                .then((res) => {
-                    if (!res.ok) throw new Error("Failed to buy item");
-                    return res.json();
+                .then(async (res) => {
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || "Failed to buy item");
+                    return data;
                 })
                 .then(() => {
                     this.fetchShopItems();
@@ -136,16 +163,46 @@ export default class extends Component<{}, State> {
                     });
                 })
                 .catch((err) => {
-                    alert("Error: " + err.message);
+                    this.setState({ alert: { message: err.message } });
+                });
+        }
+    };
+
+    handleBuyGame = async (game: any) => {
+        const result = await this.customPrompt(
+            `Buy "${game.name}"?\nPrice: ${game.price}`,
+            1,
+            game
+        );
+        if (result.confirmed) {
+            fetch(endpoint + "/games/" + game.gameId + "/buy", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + localStorage.getItem("token") || "",
+                },
+            })
+                .then(async (res) => {
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || "Failed to buy game");
+                    return data;
+                })
+                .then(() => {
+                    this.fetchGames();
+                    fetchMe(() => {
+                        document.getElementById("my-balance")!.innerText = window.me.balance.toString();
+                    });
+                })
+                .catch((err) => {
+                    this.setState({ alert: { message: err.message } });
                 });
         }
     };
 
     render(): React.ReactNode {
-        const { items, loading, error, tooltip, prompt } = this.state;
-        const columns = 6; // Fewer columns for a shop look
+        const { items, loading, error, tooltip, prompt, games = [] } = this.state;
+        const columns = 4; // Fewer columns for a shop look
         const minRows = 4;
-        const minCells = columns * minRows;
         const totalItems = items.length;
         const rows = Math.max(minRows, Math.ceil(totalItems / columns));
         const totalCells = rows * columns;
@@ -154,101 +211,231 @@ export default class extends Component<{}, State> {
         return (
             <div style={{ padding: "32px 0", verticalAlign: "middle", background: "#121212" }}>
                 <h1 style={{ textAlign: "center", color: "#fff", marginBottom: 32 }}>Shop</h1>
-                {loading && <p style={{ textAlign: "center", color: "#fff" }}>Loading...</p>}
-                {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
-                {!loading && !error && (
-                    <div
-                        style={{
-                            width: "90vw",
-                            margin: "0 auto",
-                            display: "grid",
-                            gridTemplateColumns: `repeat(${columns}, 120px)`,
-                            gap: 18,
-                            justifyContent: "center",
-                            background: "none",
-                            border: "none",
-                            padding: 0,
-                        }}
-                    >
-                        {items.map((item) => (
+                <div style={{
+                    display: "flex",
+                    gap: 32,
+                    alignItems: "flex-start",
+                    justifyContent: "center",
+                    maxWidth: 1600,
+                    margin: "0 auto",
+                    width: "90vw", // Ajouté ici
+                    minWidth: 600, // Ajouté ici
+                }}>
+                    {/* Section Items */}
+                    <div style={{
+                        flex: 1,
+                        minWidth: 320,
+                        // maxWidth: 400,
+                        maxHeight: "60vh",
+                        background: "#232323",
+                        borderRadius: 12,
+                        padding: 24,
+                        color: "#fff",
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+                        border: "2px solid #bcbcbc",
+                        overflowY: "scroll",
+                        height: "fit-content"
+                    }}>
+                        <h2 style={{ color: "#fff", marginBottom: 16 }}>Items</h2>
+                        {loading && <p style={{ textAlign: "center", color: "#fff" }}>Loading...</p>}
+                        {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+                        {!loading && !error && (
                             <div
-                                key={item.itemId}
                                 style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    background: "#232323",
-                                    borderRadius: 8,
-                                    padding: 10,
-                                    position: "relative",
-                                    cursor: "pointer",
-                                    userSelect: "none",
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                                    border: "2px solid #444",
-                                    transition: "transform 0.1s",
+                                    margin: "0 auto",
+                                    display: "grid",
+                                    gridTemplateColumns: `repeat(${columns}, 120px)`,
+                                    gap: 18,
+                                    justifyContent: "center",
                                 }}
-                                tabIndex={0}
-                                draggable={false}
-                                onMouseEnter={(e) => this.handleMouseEnter(e, item)}
-                                onMouseLeave={this.handleMouseLeave}
-                                onClick={() => this.handleBuy(item)}
                             >
-                                <img
-                                    src={url + "/items-icons/" + item.itemId + ".png"}
-                                    alt={item.name}
-                                    style={{
-                                        width: 64,
-                                        height: 64,
-                                        objectFit: "contain",
-                                        marginBottom: 8,
-                                        imageRendering: "pixelated",
-                                        pointerEvents: "none",
-                                        userSelect: "none",
-                                    }}
-                                    draggable={false}
-                                />
-                                <div style={{
-                                    fontWeight: 700,
-                                    color: "#fff",
-                                    fontSize: 15,
-                                    marginBottom: 2,
-                                    textAlign: "center",
-                                    width: "100%",
-                                    whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis"
-                                }}>{item.name}</div>
-                                <div style={{
-                                    color: "#ffd700",
-                                    fontWeight: 700,
-                                    fontSize: 15,
-                                    marginBottom: 2,
-                                    textAlign: "center"
-                                }}>{item.price}💰</div>
-                                {item.stock !== undefined && (
-                                    <div style={{
-                                        color: "#bcbcbc",
-                                        fontSize: 13,
-                                        textAlign: "center"
-                                    }}>Stock: {item.stock}</div>
-                                )}
+                                {items.filter(i=>i.itemId).map((item) => (
+                                    <div
+                                        key={item.itemId}
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            background: "#232323",
+                                            borderRadius: 8,
+                                            padding: 10,
+                                            position: "relative",
+                                            cursor: "pointer",
+                                            userSelect: "none",
+                                            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                                            border: "2px solid #444",
+                                            transition: "transform 0.1s",
+                                        }}
+                                        tabIndex={0}
+                                        draggable={false}
+                                        onMouseEnter={(e) => this.handleMouseEnter(e, item)}
+                                        onMouseLeave={this.handleMouseLeave}
+                                        onClick={() => this.handleBuy(item)}
+                                    >
+                                        <img
+                                            src={url + "/items-icons/" + item.iconHash}
+                                            alt={item.name}
+                                            style={{
+                                                width: 64,
+                                                height: 64,
+                                                objectFit: "contain",
+                                                marginBottom: 8,
+                                                imageRendering: "pixelated",
+                                                pointerEvents: "none",
+                                                userSelect: "none",
+                                            }}
+                                            draggable={false}
+                                        />
+                                        <div style={{
+                                            fontWeight: 700,
+                                            color: "#fff",
+                                            fontSize: 15,
+                                            marginBottom: 2,
+                                            textAlign: "center",
+                                            width: "100%",
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis"
+                                        }}>{item.name}</div>
+                                        <div style={{
+                                            color: "#ffd700",
+                                            fontWeight: 700,
+                                            fontSize: 15,
+                                            marginBottom: 2,
+                                            textAlign: "center"
+                                        }}>{item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/></div>
+                                        {item.stock !== undefined && (
+                                            <div style={{
+                                                color: "#bcbcbc",
+                                                fontSize: 13,
+                                                textAlign: "center"
+                                            }}>Stock: {item.stock}</div>
+                                        )}
+                                    </div>
+                                ))}
+                                {Array.from({ length: emptyCells }).map((_, idx) => (
+                                    <div
+                                        key={`empty-${idx}`}
+                                        style={{
+                                            background: "none",
+                                            borderRadius: 8,
+                                            minHeight: 100,
+                                        }}
+                                        draggable={false}
+                                    />
+                                ))}
                             </div>
-                        ))}
-                        {Array.from({ length: emptyCells }).map((_, idx) => (
-                            <div
-                                key={`empty-${idx}`}
-                                style={{
-                                    background: "none",
-                                    borderRadius: 8,
-                                    minHeight: 100,
-                                }}
-                                draggable={false}
-                            />
-                        ))}
+                        )}
                     </div>
-                )}
-
-                {/* Tooltip */}
+                    {/* Section Jeux */}
+                    <div style={{
+                        flex: 1,
+                        minWidth: 320,
+                        // maxWidth: 400,
+                        maxHeight: "60vh",
+                        background: "#232323",
+                        borderRadius: 12,
+                        padding: 24,
+                        color: "#fff",
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+                        border: "2px solid #bcbcbc",
+                        overflowY: "scroll",
+                        height: "fit-content"
+                    }}>
+                        <h2 style={{ color: "#fff", marginBottom: 16 }}>Games</h2>
+                        {games.length === 0 ? (
+                            <div style={{ color: "#bcbcbc" }}>No games available.</div>
+                        ) : (
+                            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                                {games
+                                    .slice() // pour ne pas muter le state
+                                    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+                                    .map((game: any) => (
+                                    <li
+                                        key={game.gameId}
+                                        style={{
+                                            marginBottom: 18,
+                                            padding: 0,
+                                            background: "#181818",
+                                            borderRadius: 8,
+                                            border: "1px solid #444",
+                                            boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+                                            position: "relative",
+                                            overflow: "hidden",
+                                            minHeight: 120,
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        {/* Banner as background */}
+                                        {game.bannerHash && (
+                                            <img
+                                                src={url + "/banners-icons/" + game.bannerHash}
+                                                alt="banner"
+                                                style={{
+                                                    position: "absolute",
+                                                    left: 0,
+                                                    top: 0,
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "cover",
+                                                    opacity: 0.18,
+                                                    zIndex: 0,
+                                                    pointerEvents: "none",
+                                                }}
+                                            />
+                                        )}
+                                        {/* Game icon at the side */}
+                                        <img
+                                            src={url + "/games-icons/" + game.iconHash}
+                                            alt={game.name}
+                                            style={{
+                                                width: 64,
+                                                height: 64,
+                                                objectFit: "contain",
+                                                borderRadius: 8,
+                                                margin: "0 20px",
+                                                background: "#222",
+                                                zIndex: 1,
+                                            }}
+                                        />
+                                        {/* Game info */}
+                                        <div style={{ zIndex: 1, flex: 1 }}>
+                                            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>{game.name}</div>
+                                            <div style={{ color: "#bcbcbc", marginBottom: 6 }}>{game.description}</div>
+                                            <div style={{ color: "#ffd700", fontWeight: 700 }}>
+                                                Price: {game.price}
+                                                <img src="./credit.png" style={{ width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px' }} />
+                                            </div>
+                                            <div style={{ color: "#bcbcbc", marginTop: 4 }}>
+                                                Rating: {game.rating ?? "N/A"}
+                                            </div>
+                                        </div>
+                                        {/* Buy button */}
+                                        <button
+                                            style={{
+                                                marginRight: 24,
+                                                padding: "8px 20px",
+                                                background: "#4caf50",
+                                                color: "#fff",
+                                                border: "none",
+                                                borderRadius: 4,
+                                                fontWeight: 700,
+                                                cursor: "pointer",
+                                                fontSize: 15,
+                                                zIndex: 2,
+                                            }}
+                                            onClick={() => this.handleBuyGame(game)}
+                                        >
+                                            Buy
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+                {/* Tooltip et Prompt inchangés */}
                 {tooltip && (
                     <div
                         style={{
@@ -272,7 +459,7 @@ export default class extends Component<{}, State> {
                         <div style={{ fontWeight: 700, marginBottom: 4 }}>{tooltip.item.name}</div>
                         <div style={{ color: "#bcbcbc" }}>{tooltip.item.description}</div>
                         <div style={{ marginTop: 8, color: "#ffd700" }}>
-                            Price: {tooltip.item.price}💰
+                            Price: {tooltip.item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
                             {tooltip.item.stock !== undefined && (
                                 <span style={{ color: "#bcbcbc", marginLeft: 8 }}>
                                     Stock: {tooltip.item.stock}
@@ -281,8 +468,6 @@ export default class extends Component<{}, State> {
                         </div>
                     </div>
                 )}
-
-                {/* Custom Prompt */}
                 {prompt && (
                     <div
                         style={{
@@ -330,7 +515,7 @@ export default class extends Component<{}, State> {
                                         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{prompt.item.name}</div>
                                         <div style={{ color: "#bcbcbc", marginBottom: 8 }}>{prompt.item.description}</div>
                                         <div style={{ color: "#ffd700", fontWeight: 700 }}>
-                                            Price: {prompt.item.price}💰
+                                            Price: {prompt.item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
                                             {prompt.item.stock !== undefined && (
                                                 <span style={{ color: "#bcbcbc", marginLeft: 8 }}>
                                                     Stock: {prompt.item.stock}
@@ -388,7 +573,7 @@ export default class extends Component<{}, State> {
                                     )}
                                     {prompt.item && (
                                         <span style={{ color: "#ffd700", marginLeft: 8 }}>
-                                            Total: {(prompt.amount || 1) * (prompt.item.price || 0)}💰
+                                            Total: {(prompt.amount || 1) * (prompt.item.price || 0)}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
                                         </span>
                                     )}
                                 </div>
@@ -423,6 +608,52 @@ export default class extends Component<{}, State> {
                                 onClick={() => this.handlePromptResult(false)}
                             >
                                 Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
+                {this.state.alert && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            left: 0,
+                            top: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.5)",
+                            zIndex: 4000,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <div
+                            style={{
+                                background: "#232323",
+                                border: "1px solid #888",
+                                borderRadius: 8,
+                                padding: 32,
+                                minWidth: 300,
+                                color: "#fff",
+                                boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+                                textAlign: "center",
+                            }}
+                        >
+                            <div style={{ fontSize: 18, marginBottom: 24 }}>{this.state.alert.message}</div>
+                            <button
+                                style={{
+                                    padding: "8px 24px",
+                                    background: "#4caf50",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: 4,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    fontSize: 16,
+                                }}
+                                onClick={() => this.setState({ alert: null })}
+                            >
+                                OK
                             </button>
                         </div>
                     </div>

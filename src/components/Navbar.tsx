@@ -18,9 +18,8 @@ export default class extends Component {
                             <Link to="/">Library</Link>
                             <Link to="/shop">Shop</Link>
                             <Link to="/buy-credits">Credits</Link>
-                            <Link to="/inventory">Inventory</Link>
-                            <Link to="/dev-zone_create-game">Create Game</Link>
-                            {/* <Link to="/lobby">Lobby</Link> */}
+                            <Link to="/inventory">Inventory</Link> | 
+                            <Link to="/dev-zone">Create</Link>
                         </div>
                         <SearchBar />
                         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -28,7 +27,6 @@ export default class extends Component {
                                 <img src="./credit.png" style={{width: '24px', height:'24px', marginLeft: "4px" }}/>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <span id="my-balance">0</span>
-                                    {/* <span style={{marginLeft: "4px"}}>Credits</span> */}
                                 </div>
                             </div>
                             <Link to="/profile?user=me">

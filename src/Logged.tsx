@@ -11,7 +11,11 @@ import Lobby from "./pages/Lobby";
 import Inventory from "./pages/Inventory";
 import Profile from "./pages/Profile";
 import SearchPage from "./pages/SearchPage";
-import GameForm from "./pages/GameForm";
+import CreateGame from "./pages/Devzone/CreateGame";
+import CreateItem from "./pages/Devzone/CreateItem";
+import MyGames from "./pages/Devzone/MyGames";
+import MyItems from "./pages/Devzone/MyItems";
+import Devzone from "./pages/Devzone";
 
 import "./styles/main.css";
 import { useParams, useLocation } from "react-router-dom";
@@ -37,8 +41,11 @@ export default class extends Component {
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/profile" element={<ProfileWrapper />} />
               <Route path="/search" element={<SearchPage />} />
-              <Route path="/dev-zone_create-game" element={<GameForm />} />
-
+              <Route path="/dev-zone" element={<Devzone />} />
+              <Route path="/dev-zone_create-game" element={<CreateGame />} />
+              <Route path="/dev-zone_create-item" element={<CreateItem />} />
+              <Route path="/dev-zone_my-games" element={<MyGames />} />
+              <Route path="/dev-zone_my-items" element={<MyItems />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

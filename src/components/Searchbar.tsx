@@ -26,7 +26,7 @@ export default function Searchbar() {
                 border: "1px solid #ccc",
                 borderRadius: "4px",
                 padding: "8px",
-                width: "30%",
+                // width: "30%",
                 boxSizing: "border-box",
                 backgroundColor: "#2a2a2a",
                 color: "#fff",

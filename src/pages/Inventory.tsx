@@ -15,6 +15,7 @@ export interface InventoryItem {
 }
 
 export interface Item {
+    iconHash: string;
     itemId: string;
     name: string;
     description: string;
@@ -145,8 +146,7 @@ export default class extends Component<{}, State> {
     handleSell = async (item: Item) => {
         const result = await this.customPrompt(`Sell how many "${item.name}"?`, item.amount);
         if (result.confirmed && result.amount && result.amount > 0) {
-            console.log(`Selling ${result.amount} of ${item.name}`);
-            fetch(endpoint + "/items/sell/" +item.itemId, {
+            fetch(endpoint + "/items/sell/" + item.itemId, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -155,22 +155,26 @@ export default class extends Component<{}, State> {
                 body: JSON.stringify({
                     amount: result.amount,
                 })
-            }).then((res) => {
-                if (!res.ok) throw new Error("Failed to sell item");
-                return res.json();
+            })
+            .then(async (res) => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || "Failed to sell item");
+                return data;
             })
             .then(() => {
                 this.setState({ contextMenu: null });
                 this.refreshInventory();
             })
+            .catch((err) => {
+                this.setState({ error: err.message });
+            });
         }
     };
 
     handleDrop = async (item: Item) => {
         const result = await this.customPrompt(`Drop how many "${item.name}"?`, item.amount);
         if (result.confirmed && result.amount && result.amount > 0) {
-            console.log(`Dropping ${result.amount} of ${item.name}`);
-            fetch(endpoint + "/items/drop/" +item.itemId, {
+            fetch(endpoint + "/items/drop/" + item.itemId, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -179,14 +183,19 @@ export default class extends Component<{}, State> {
                 body: JSON.stringify({
                     amount: result.amount,
                 })
-            }).then((res) => {
-                if (!res.ok) throw new Error("Failed to drop item");
-                return res.json();
+            })
+            .then(async (res) => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || "Failed to drop item");
+                return data;
             })
             .then(() => {
                 this.setState({ contextMenu: null });
                 this.refreshInventory();
             })
+            .catch((err) => {
+                this.setState({ error: err.message });
+            });
         }
     };
 
@@ -263,7 +272,7 @@ export default class extends Component<{}, State> {
                     </button>
                     <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
                         <img
-                            src={url + "/items-icons/" + selectedItem.itemId + ".png"}
+                            src={url + "/items-icons/" + selectedItem.iconHash}
                             alt={selectedItem.name}
                             style={{
                                 width: 96,
@@ -371,7 +380,7 @@ export default class extends Component<{}, State> {
                             >
                                 <>
                                     <img
-                                        src={url + "/items-icons/" + item.itemId + ".png"}
+                                        src={url + "/items-icons/" + item.iconHash}
                                         alt={item.name}
                                         style={{
                                             width: 48,

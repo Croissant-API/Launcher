@@ -22,6 +22,7 @@ interface Item {
     owner?: string;
     showInStore?: boolean;
     deleted?: boolean;
+    iconHash?: string | null;
 }
 
 type ProfileProps = {
@@ -148,7 +149,7 @@ export default function Profile({ user }: ProfileProps) {
                 </button>
                 <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
                     <img
-                        src={url + "/items-icons/" + selectedItem.itemId + ".png"}
+                        src={url + "/items-icons/" + selectedItem.iconHash}
                         alt={selectedItem.name}
                         style={{
                             width: 96,
@@ -276,7 +277,7 @@ export default function Profile({ user }: ProfileProps) {
                             onClick={() => handleItemClick(item)}
                         >
                             <img
-                                src={url + "/items-icons/" + item.itemId + ".png"}
+                                src={url + "/items-icons/" + item.iconHash}
                                 alt={item.name}
                                 style={{
                                     width: 48,
