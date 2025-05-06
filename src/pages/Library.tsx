@@ -35,6 +35,7 @@ const Library: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         fetch(myUrl + "/list", {
@@ -50,7 +51,9 @@ const Library: React.FC = () => {
             })
             .then((data) => {
                 setGames(data);
-                setSelected(data[0] || null);
+                const lastGameId = localStorage.getItem("lastSelectedGameId");
+                const lastGame = data.find((g: Game) => g.gameId === lastGameId);
+                setSelected(lastGame || data[0] || null);
                 setLoading(false);
             })
             .catch((err) => {
@@ -67,14 +70,12 @@ const Library: React.FC = () => {
                     message.action === "downloadComplete" ||
                     message.action === "alreadyInstalled"
                 ) {
-                    // console.log("Download complete or already installed:", message);
                     setGames((prevGames) => {
                         const updatedGames = prevGames.map((game) =>
                             game.gameId === message.gameId
                                 ? { ...game, state: "installed" as Game["state"] }
                                 : game
                         );
-                        // Met à jour selected si besoin
                         if (selected && selected.gameId === message.gameId) {
                             const updatedSelected = updatedGames.find(g => g.gameId === selected.gameId);
                             if (updatedSelected) setSelected(updatedSelected);
@@ -122,7 +123,6 @@ const Library: React.FC = () => {
                         setSelected({ ...selected, state: "installed" });
                     }
                 }
-                // Handle closeGame: switch from playing to installed
                 if (message.action === "closeGame" || message.action === "closed") {
                     setGames((prevGames) =>
                         prevGames.map((game) =>
@@ -136,7 +136,6 @@ const Library: React.FC = () => {
                     }
                     setIsPlaying(false);
                 }
-                // Optionally, handle playing state
                 if (message.action === "playing") {
                     setGames((prevGames) =>
                         prevGames.map((game) =>
@@ -166,7 +165,6 @@ const Library: React.FC = () => {
                     setError(`Game ${message.gameId} not found for deletion.`);
                 }
             } catch (e) {
-                // Handle parse error or ignore
             }
         };
         return () => {
@@ -179,9 +177,8 @@ const Library: React.FC = () => {
             ws.send(JSON.stringify({
                 action: "downloadGame",
                 gameId: selected.gameId,
-                downloadUrl: selected.download_link // Assure-toi que ce champ existe côté API
+                downloadUrl: selected.download_link
             }));
-            // Optionally update UI state to show downloading...
         }
     };
 
@@ -189,7 +186,6 @@ const Library: React.FC = () => {
         if (selected && selected.state === "installed") {
             ws.send(JSON.stringify({ action: "playGame", gameId: selected.gameId, playerId: window.me.userId, verificationKey: localStorage.getItem("verificationKey") }));
             setIsPlaying(true);
-            // Optionally update selected.state to "playing"
         }
     };
 
@@ -202,14 +198,18 @@ const Library: React.FC = () => {
     const handleDelete = () => {
         if (selected && selected.state === "installed") {
             ws.send(JSON.stringify({ action: "deleteGame", gameId: selected.gameId }));
-            // Do not remove from UI here, wait for WebSocket confirmation
         }
     };
 
     const handleSelect = (game: Game) => {
         setSelected(game);
         setIsPlaying(game.state === "playing");
+        localStorage.setItem("lastSelectedGameId", game.gameId);
     };
+
+    const filteredGames = games.filter(game =>
+        game.name.toLowerCase().includes(search.toLowerCase())
+    );
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div style={{ color: "red" }}>{error}</div>;
@@ -218,11 +218,28 @@ const Library: React.FC = () => {
         <div className="steam-library-layout">
             <aside className="steam-library-sidebar">
                 <h3 className="sidebar-title">Games</h3>
-                {games.length === 0 ? (
-                    <div className="sidebar-empty"></div>
+                <input
+                    type="text"
+                    placeholder="Search games..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{
+                        width: "70%",
+                        margin: "8px auto 16px auto",
+                        display: "block",
+                        padding: "6px 10px",
+                        borderRadius: 6,
+                        border: "1px solid #bcbcbc",
+                        background: "#23262e",
+                        color: "#fff",
+                        fontSize: 15,
+                    }}
+                />
+                {filteredGames.length === 0 ? (
+                    <div className="sidebar-empty">No games found.</div>
                 ) : (
                     <ul className="sidebar-list">
-                        {games.map((game) => (
+                        {filteredGames.map((game) => (
                             <li
                                 key={game.gameId}
                                 className={[`sidebar-game`,
@@ -249,57 +266,55 @@ const Library: React.FC = () => {
                 {!selected ? (
                     <div className="main-empty">Please select a game.</div>
                 ) : (
-                    <>
-                        <img
-                            src={url + `/banners-icons/${selected.bannerHash}`}
-                            alt={selected.name}
-                            className="main-splash"
-                        />
-                        <div className="main-details">
-                            <h2>{selected.name}</h2>
-                            <p>{selected.description}</p>
-                            {selected.state === "not_installed" && (
-                                <button
-                                    className="library-play-btn can-install"
-                                    onClick={handleInstall}
-                                >
-                                    Install
-                                </button>
-                            )}
-                            {selected.state === "to_update" && (
-                                <button
-                                    className="library-play-btn can-update"
-                                    onClick={handleUpdate}
-                                >
-                                    Update
-                                </button>
-                            )}
-                            {selected.state === "installed" && (
-                                <>
-                                    <button
-                                        className={`library-play-btn can-play`}
-                                        onClick={handlePlay}
-                                        disabled={isPlaying}
-                                    >
-                                        {isPlaying ? "In Game" : "Play"}
-                                    </button>
-                                    <button
-                                        className="library-play-btn can-delete"
-                                        onClick={handleDelete}
-                                        disabled={isPlaying}
-                                        style={{ marginLeft: 8, background: "#c0392b", color: "#fff" }}
-                                    >
-                                        Delete
-                                    </button>
-                                </>
-                            )}
-                            {selected.state === "playing" && (
-                                <button className="library-play-btn playing" disabled>
-                                    In Game
-                                </button>
-                            )}
+                    <div className="main-details-steam">
+                        <div className="banner-container">
+                            <img
+                                src={url + `/banners-icons/${selected.bannerHash}`}
+                                alt={selected.name}
+                                className="main-banner-steam"
+                            />
+                            <img
+                                src={url + `/games-icons/${selected.iconHash}`}
+                                alt={selected.name}
+                                className="main-icon-steam"
+                            />
                         </div>
-                    </>
+                        <div className="main-details-content">
+                            <h2>{selected.name}</h2>
+                            <p style={{ color: "#bcbcbc" }}>{selected.description}</p>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, minWidth: "800px", width: "800px", gap: "400px" }}>
+                                <div style={{ marginTop: 24, display: "flex", gap: 8, flexDirection: "column" }}>
+                                    {selected.state === "not_installed" && (
+                                        <button className="library-play-btn can-install" onClick={handleInstall}>Install</button>
+                                    )}
+                                    {selected.state === "to_update" && (
+                                        <button className="library-play-btn can-update" onClick={handleUpdate}>Update</button>
+                                    )}
+                                    {selected.state === "installed" && (
+                                        <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+                                            <button className="library-play-btn can-play" onClick={handlePlay} disabled={isPlaying}>
+                                                {isPlaying ? "In Game" : "Play"}
+                                            </button>
+                                            <button className="library-play-btn can-delete" onClick={handleDelete} disabled={isPlaying}
+                                                style={{ background: "#c0392b", color: "#fff" }}>Delete
+                                            </button>
+                                        </div>
+                                    )}
+                                    {selected.state === "playing" && (
+                                        <button className="library-play-btn playing" disabled>In Game</button>
+                                    )}
+                                </div>
+                                <div className="game-properties">
+                                    {selected.genre && <div><b>Genre:</b> {selected.genre}</div>}
+                                    {selected.developer && <div><b>Developer:</b> {selected.developer}</div>}
+                                    {selected.publisher && <div><b>Publisher:</b> {selected.publisher}</div>}
+                                    {selected.release_date && <div><b>Release Date:</b> {selected.release_date}</div>}
+                                    {selected.platforms && <div><b>Platforms:</b> {selected.platforms}</div>}
+                                    {selected.rating !== undefined && <div><b>Rating:</b> {selected.rating}</div>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </main>
         </div>

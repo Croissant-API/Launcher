@@ -174,3 +174,66 @@
     color: #66c0f4;
     margin-bottom: 8px;
 }
+
+.main-details-steam {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background: #23262e;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #000a;
+    padding: 0;
+    overflow: hidden;
+    margin: 0 auto;
+    max-width: 900px;
+    min-height: 580px;
+}
+.banner-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    background: #4EB2BF;
+}
+.main-banner-steam {
+    width: 100%;
+    max-width: 100%;
+    height: 220px;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.85);
+}
+.main-icon-steam {
+    position: absolute;
+    left: 32px;
+    bottom: -32px;
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px #000a;
+    background: #23262e;
+    border: 4px solid #181a21;
+    object-fit: contain;
+    z-index: 2;
+}
+.main-details-content {
+    margin-left: 0;
+    padding: 56px 32px 32px 32px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.game-properties {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    /* gap: 24px; */
+    margin: 18px 0 0 0;
+    min-width: 900px;
+    color: #bcbcbc;
+    font-size: 15px;
+}
+@media (max-width: 700px) {
+    .main-details-steam { max-width: 100vw; }
+    .main-details-content { padding: 56px 12px 24px 12px; }
+    .main-icon-steam { left: 12px; width: 72px; height: 72px; }
+    .banner-container, .main-banner-steam { height: 120px; }
+}

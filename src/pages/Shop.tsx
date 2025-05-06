@@ -209,7 +209,7 @@ export default class extends Component<{}, State> {
         const emptyCells = totalCells - totalItems;
 
         return (
-            <div style={{ padding: "32px 0", verticalAlign: "middle", background: "#121212" }}>
+            <div style={{ padding: "32px 0", verticalAlign: "middle" }}>
                 <h1 style={{ textAlign: "center", color: "#fff", marginBottom: 32 }}>Shop</h1>
                 <div style={{
                     display: "flex",
@@ -401,7 +401,18 @@ export default class extends Component<{}, State> {
                                         />
                                         {/* Game info */}
                                         <div style={{ zIndex: 1, flex: 1 }}>
-                                            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>{game.name}</div>
+                                            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>
+                                                <Link
+                                                    to={`/game/${game.gameId}`}
+                                                    style={{
+                                                        color: "#61dafb",
+                                                        textDecoration: "underline",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    {game.name}
+                                                </Link>
+                                            </div>
                                             <div style={{ color: "#bcbcbc", marginBottom: 6 }}>{game.description}</div>
                                             <div style={{ color: "#ffd700", fontWeight: 700 }}>
                                                 Price: {game.price}
@@ -429,6 +440,25 @@ export default class extends Component<{}, State> {
                                         >
                                             Buy
                                         </button>
+                                        <Link
+                                            to={`/game/${game.gameId}`}
+                                            style={{
+                                                marginRight: 12,
+                                                padding: "8px 20px",
+                                                background: "#1976d2",
+                                                color: "#fff",
+                                                border: "none",
+                                                borderRadius: 4,
+                                                fontWeight: 700,
+                                                cursor: "pointer",
+                                                fontSize: 15,
+                                                zIndex: 2,
+                                                textDecoration: "none",
+                                                display: "inline-block"
+                                            }}
+                                        >
+                                            View
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

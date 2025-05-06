@@ -51,7 +51,7 @@ const MyItems = () => {
             name: item.name,
             description: item.description,
             price: item.price.toString(),
-            showInStore: item.showInStore,
+            showInStore: !!item.showInStore, // Ensure boolean value
             iconHash: item.iconHash || '',
         });
         setIconFile(null);
@@ -137,7 +137,7 @@ const MyItems = () => {
             name: formData.name,
             description: formData.description,
             price: Number(formData.price),
-            showInStore: formData.showInStore,
+            showInStore: !!formData.showInStore, // Ensure boolean is sent
             ...(iconHash && { iconHash }),
         };
 
