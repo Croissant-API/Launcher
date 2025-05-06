@@ -1,12 +1,6 @@
-- Ajouter l'interface des items via /api/items/@mine
-    - Création d'items
-    - Édition d'items
-    - Suppression d'items
-    Le prix de l'item ne peut pas être modifié après coup pour éviter une faille.
-
-    Le propriétaire d'un item ne peut pas échanger ses propres items ?
-
-- Ajouter le système d'échange avec interface et interactions
+<!-- - Ajouter le système d'échange avec interface et interactions -->
 - Créer le bot Discord (pas dans ce dépôt)
-- Ajouter l'interface d'édition de jeu en tant que propriétaire
-- Ajouter l'interface de suppression de jeu en tant que propriétaire
+
+On ne peut pas encore supprimer les items ni les jeux. Les gens les ont payé donc on ne les enleve pas pour le moment
+
+Les trades se feront via le bot
