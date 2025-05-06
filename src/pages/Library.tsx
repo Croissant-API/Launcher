@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Library.css";
-import { endpoint, myUrl } from "../config/config";
-
+import { endpoint, myUrl, url } from "../config/config";
 type Game = {
     id?: number;
     gameId: string;
     name: string;
     description: string;
     price: number;
-    ownerId: string;
-    showInStore: boolean;
+    ownerId?: string;
+    owner_id?: string;
+    showInStore?: boolean | number;
     image?: string;
     state?: "installed" | "not_installed" | "playing" | "to_update";
-    download_link?: string; // Assure-toi que ce champ existe côté API
+    download_link?: string;
+    bannerHash?: string;
+    iconHash?: string;
+    splashHash?: string | null;
+    developer?: string;
+    publisher?: string;
+    genre?: string;
+    multiplayer?: number | boolean;
+    platforms?: string;
+    rating?: number;
+    release_date?: string;
+    trailer_link?: string;
+    website?: string;
 };
 
 const ws = new WebSocket("ws://localhost:8081"); // Adjust if needed
@@ -223,7 +235,11 @@ const Library: React.FC = () => {
                                 onClick={() => handleSelect(game)}
                             >
                                 <img
-                                    src={game.image || "https://placehold.co/600x300?text=No+Image"}
+                                    src={
+                                        game.iconHash
+                                            ? url + `/games-icons/${game.iconHash}`
+                                            : "https://placehold.co/600x300?text=No+Image"
+                                    }
                                     alt={game.name}
                                     className="sidebar-thumb"
                                 />
@@ -239,7 +255,11 @@ const Library: React.FC = () => {
                 ) : (
                     <>
                         <img
-                            src={selected.image || "https://placehold.co/600x300?text=No+Image"}
+                            src={
+                                selected.bannerHash
+                                    ? url + `/banners-icons/${selected.bannerHash}`
+                                    : "https://placehold.co/600x300?text=No+Image"
+                            }
                             alt={selected.name}
                             className="main-splash"
                         />

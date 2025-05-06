@@ -19,6 +19,7 @@ export default class extends Component {
                             <Link to="/shop">Shop</Link>
                             <Link to="/buy-credits">Credits</Link>
                             <Link to="/inventory">Inventory</Link>
+                            <Link to="/dev-zone_create-game">Create Game</Link>
                             {/* <Link to="/lobby">Lobby</Link> */}
                         </div>
                         <SearchBar />
