@@ -7,7 +7,7 @@ import { PORT } from './server.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const devEnv = true;
+const devEnv = false;
 const PORT_TO_SERVE = !devEnv ? PORT : 4536;
 
 let win;
