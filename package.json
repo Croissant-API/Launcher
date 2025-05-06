@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "croissant-launcher": "file:",
     "discord-rpc": "^4.0.1",
     "dotenv": "^16.5.0",
     "electron-squirrel-startup": "^1.0.1",
