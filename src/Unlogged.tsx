@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { BrowserRouter as Router, Routes, Route, BrowserRouter } from "react-router-dom";
 
-import "./styles/main.css";
+import "./main.css";
 
 export default class extends Component {
   render() {

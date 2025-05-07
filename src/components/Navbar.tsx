@@ -17,7 +17,7 @@ export default class extends Component {
                             <Link to="/">Library</Link>
                             <Link to="/shop">Shop</Link>
                             <div className="create-dropdown">
-                                <Link to="/dev-zone">Create</Link>
+                                Create
                                 <div className="create-dropdown-content">
                                     <Link to="/dev-zone_my-games">My Games</Link>
                                     <Link to="/dev-zone_my-items">My Items</Link>

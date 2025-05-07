@@ -200,65 +200,18 @@ export default class extends Component<{}, State> {
     };
 
     render(): React.ReactNode {
-        const { items, loading, error, tooltip, prompt, games = [] } = this.state;
-        const columns = 4;
-        const minRows = 4;
-        const totalItems = items.length;
-        const rows = Math.max(minRows, Math.ceil(totalItems / columns));
-        const totalCells = rows * columns;
-        const emptyCells = totalCells - totalItems;
+        const { loading, error, tooltip, prompt, games = [] } = this.state;
 
         return (
             <div className="shop-root">
                 <h1 className="shop-title">Shop</h1>
                 <div className="shop-sections">
+                    {/* Items section removed for cleaner shop, only games are shown */}
+                    {/* 
                     <div className="shop-items-section">
-                        <h2 className="shop-section-title">Items</h2>
-                        {loading && <p className="shop-loading">Loading...</p>}
-                        {error && <p className="shop-error">{error}</p>}
-                        {!loading && !error && (
-                            <div
-                                className="shop-items-grid"
-                                style={{
-                                    gridTemplateColumns: `repeat(${columns}, 120px)`,
-                                }}
-                            >
-                                {items.filter((i) => i.itemId).map((item) => (
-                                    <div
-                                        key={item.itemId}
-                                        className="shop-item-card"
-                                        tabIndex={0}
-                                        draggable={false}
-                                        onMouseEnter={(e) => this.handleMouseEnter(e, item)}
-                                        onMouseLeave={this.handleMouseLeave}
-                                        onClick={() => this.handleBuy(item)}
-                                    >
-                                        <img
-                                            src={url + "/items-icons/" + item.iconHash}
-                                            alt={item.name}
-                                            className="shop-item-img"
-                                            draggable={false}
-                                        />
-                                        <div className="shop-item-name">{item.name}</div>
-                                        <div className="shop-item-price">
-                                            {item.price}
-                                            <img src="./credit.png" className="shop-credit-icon" />
-                                        </div>
-                                        {item.stock !== undefined && (
-                                            <div className="shop-item-stock">Stock: {item.stock}</div>
-                                        )}
-                                    </div>
-                                ))}
-                                {Array.from({ length: emptyCells }).map((_, idx) => (
-                                    <div
-                                        key={`empty-${idx}`}
-                                        className="shop-item-empty"
-                                        draggable={false}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        ...existing items code...
                     </div>
+                    */}
                     <div className="shop-games-section">
                         <h2 className="shop-section-title">Games</h2>
                         {games.length === 0 ? (
@@ -321,98 +274,9 @@ export default class extends Component<{}, State> {
                         )}
                     </div>
                 </div>
-                {tooltip && (
-                    <div className="shop-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
-                        <div className="shop-tooltip-name">{tooltip.item.name}</div>
-                        <div className="shop-tooltip-desc">{tooltip.item.description}</div>
-                        <div className="shop-tooltip-price">
-                            Price: {tooltip.item.price}
-                            <img src="./credit.png" className="shop-credit-icon" />
-                            {tooltip.item.stock !== undefined && (
-                                <span className="shop-tooltip-stock">
-                                    Stock: {tooltip.item.stock}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                )}
-                {prompt && (
-                    <div className="shop-prompt-overlay">
-                        <div className="shop-prompt">
-                            {prompt.item && (
-                                <div className="shop-prompt-item-details">
-                                    <img
-                                        src={url + "/items-icons/" + prompt.item.itemId + ".png"}
-                                        alt={prompt.item.name}
-                                        className="shop-prompt-item-img"
-                                    />
-                                    <div className="shop-prompt-item-info">
-                                        <div className="shop-prompt-item-name">{prompt.item.name}</div>
-                                        <div className="shop-prompt-item-desc">{prompt.item.description}</div>
-                                        <div className="shop-prompt-item-price">
-                                            Price: {prompt.item.price}
-                                            <img src="./credit.png" className="shop-credit-icon" />
-                                            {prompt.item.stock !== undefined && (
-                                                <span className="shop-prompt-item-stock">
-                                                    Stock: {prompt.item.stock}
-                                                </span>
-                                            )}
-                                        </div>
-                                        {(prompt.item as any).owner && this.state.promptOwnerUser && (
-                                            <div className="shop-prompt-item-owner">
-                                                Creator:{" "}
-                                                <Link
-                                                    to={`/profile?user=${(prompt.item as any).owner}`}
-                                                    className="shop-prompt-owner-link"
-                                                >
-                                                    <img
-                                                        className="shop-prompt-owner-avatar"
-                                                        src={url + "/avatar/" + (prompt.item as any).owner}
-                                                    />
-                                                    {this.state.promptOwnerUser.global_name || this.state.promptOwnerUser.username}
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                            <div className="shop-prompt-message">{prompt.message}</div>
-                            {prompt.maxAmount !== 1 && (
-                                <div className="shop-prompt-amount">
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        max={prompt.maxAmount || undefined}
-                                        value={prompt.amount}
-                                        onChange={this.handlePromptAmountChange}
-                                        className="shop-prompt-amount-input"
-                                    />
-                                    {prompt.maxAmount && (
-                                        <span className="shop-prompt-amount-max">/ {prompt.maxAmount}</span>
-                                    )}
-                                    {prompt.item && (
-                                        <span className="shop-prompt-amount-total">
-                                            Total: {(prompt.amount || 1) * (prompt.item.price || 0)}
-                                            <img src="./credit.png" className="shop-credit-icon" />
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                            <button
-                                className="shop-prompt-buy-btn"
-                                onClick={() => this.handlePromptResult(true)}
-                            >
-                                Buy
-                            </button>
-                            <button
-                                className="shop-prompt-cancel-btn"
-                                onClick={() => this.handlePromptResult(false)}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
+                {/* Tooltip and prompt logic can be kept or removed if only relevant to items */}
+                {/* {tooltip && ...} */}
+                {/* {prompt && ...} */}
                 {this.state.alert && (
                     <div className="shop-alert-overlay">
                         <div className="shop-alert">

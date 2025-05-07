@@ -8,17 +8,15 @@ import Library from "./pages/Library";
 import Shop from "./pages/Shop";
 import Credits from "./pages/Credits";
 import Lobby from "./pages/Lobby";
-import Inventory from "./components/Inventory";
 import Profile from "./pages/Profile";
 import SearchPage from "./pages/SearchPage";
 import CreateGame from "./pages/Devzone/CreateGame";
 import CreateItem from "./pages/Devzone/CreateItem";
 import MyGames from "./pages/Devzone/MyGames";
 import MyItems from "./pages/Devzone/MyItems";
-import Devzone from "./pages/Devzone";
 import GamePage from "./pages/GamePage";
 
-import "./styles/main.css";
+import "./main.css";
 import { useParams, useLocation } from "react-router-dom";
 
 function ProfileWrapper() {
@@ -42,7 +40,6 @@ export default class extends Component {
               <Route path="/buy-credits" element={<Credits />} />
               <Route path="/profile" element={<ProfileWrapper />} />
               <Route path="/search" element={<SearchPage />} />
-              <Route path="/dev-zone" element={<Devzone />} />
               <Route path="/dev-zone_create-game" element={<CreateGame />} />
               <Route path="/dev-zone_create-item" element={<CreateItem />} />
               <Route path="/dev-zone_my-games" element={<MyGames />} />

@@ -23,9 +23,10 @@ export interface Item {
 interface Props {
     userId: string;
     isMe?: boolean;
+    reloadFlag: number;
 }
 
-export default function Inventory({ userId, isMe }: Props) {
+export default function Inventory({ userId, isMe, reloadFlag }: Props) {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -43,6 +44,12 @@ export default function Inventory({ userId, isMe }: Props) {
     useEffect(() => {
         refreshInventory();
     }, [userId]);
+
+    useEffect(() => {
+        if (reloadFlag) {
+            refreshInventory();
+        }
+    }, [reloadFlag]);
 
     const refreshInventory = () => {
         // setLoading(true);

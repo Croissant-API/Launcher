@@ -1,6 +1,6 @@
 import { endpoint, url } from "../config/config";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function SearchPage() {
     const location = useLocation();
@@ -59,26 +59,27 @@ export default function SearchPage() {
                     </div>
                 )}
                 {users.map((user, idx) => (
-                    <div
-                        key={user.id || idx}
-                        className="search-user-card"
-                        tabIndex={0}
-                        onClick={() => window.location.href = `/profile?user=${user.id}`}
-                        onMouseOver={e => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.28)")}
-                        onMouseOut={e => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)")}
-                    >
-                        <img
-                            src={url + "/avatar/" + user.id}
-                            alt="User Avatar"
-                            className="search-user-avatar"
-                        />
-                        <div className="search-user-name">
-                            {user.global_name || user.username}
+                    <Link to={`/profile?user=${user.id}`} style={{ textDecoration: "none" }}>
+                        <div
+                            key={user.id || idx}
+                            className="search-user-card"
+                            tabIndex={0}
+                            onMouseOver={e => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.28)")}
+                            onMouseOut={e => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)")}
+                        >
+                            <img
+                                src={url + "/avatar/" + user.id}
+                                alt="User Avatar"
+                                className="search-user-avatar"
+                            />
+                            <div className="search-user-name">
+                                {user.global_name || user.username}
+                            </div>
+                            <div className="search-user-username">
+                                @{user.username}
+                            </div>
                         </div>
-                        <div className="search-user-username">
-                            @{user.username}
-                        </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>
