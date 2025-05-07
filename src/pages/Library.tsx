@@ -210,7 +210,51 @@ const Library: React.FC = () => {
         game.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) {
+        return (
+            <div style={{ position: "relative" }}>
+                {/* Skeleton UI */}
+                <div className="steam-library-layout">
+                    <aside className="steam-library-sidebar">
+                        <input
+                            type="text"
+                            placeholder="Search games..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="library-search-input"
+                            disabled
+                        />
+                        <ul className="sidebar-list">
+                            {[...Array(5)].map((_, i) => (
+                                <li key={i} className="sidebar-game not-installed">
+                                    <div className="sidebar-thumb skeleton-icon" style={{ width: 36, height: 36 }} />
+                                    <span className="skeleton-title" style={{ width: "60%", height: 18, margin: 0 }} />
+                                </li>
+                            ))}
+                        </ul>
+                    </aside>
+                    <main className="steam-library-main">
+                        <div className="main-details-steam gamepage-blur">
+                            <div className="banner-container">
+                                <div className="main-banner-steam skeleton-banner" />
+                                <div className="main-icon-steam skeleton-icon" />
+                            </div>
+                            <div className="main-details-content">
+                                <div className="skeleton-title" />
+                                <div className="skeleton-desc" />
+                                <div className="skeleton-properties" />
+                            </div>
+                        </div>
+                    </main>
+                </div>
+                {/* Loading spinner overlay */}
+                <div className="gamepage-loading-overlay">
+                    <div className="inventory-loading-spinner" />
+                </div>
+            </div>
+        );
+    }
+
     if (error) return <div style={{ color: "red" }}>{error}</div>;
 
     return (
