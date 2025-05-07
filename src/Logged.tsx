@@ -35,17 +35,17 @@ export default class extends Component {
           <main style={{ position: "fixed", left: 0, right: 0, top: "7rem", bottom: 0, overflow: "hidden" }}>
             {/* <div style={{ width: "100%", height: "100%", overflow: "auto" }}> */}
             <Routes>
-              <Route path="/" element={<Library />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/buy-credits" element={<Credits />} />
-              <Route path="/profile" element={<ProfileWrapper />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/dev-zone_create-game" element={<CreateGame />} />
-              <Route path="/dev-zone_create-item" element={<CreateItem />} />
-              <Route path="/dev-zone_my-games" element={<MyGames />} />
-              <Route path="/dev-zone_my-items" element={<MyItems />} />
-              <Route path="/game" element={<GamePage />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/launcher/" element={<Library />} />
+              <Route path="/launcher/shop" element={<Shop />} />
+              <Route path="/launcher/buy-credits" element={<Credits />} />
+              <Route path="/launcher/profile" element={<ProfileWrapper />} />
+              <Route path="/launcher/search" element={<SearchPage />} />
+              <Route path="/launcher/dev-zone_create-game" element={<CreateGame />} />
+              <Route path="/launcher/dev-zone_create-item" element={<CreateItem />} />
+              <Route path="/launcher/dev-zone_my-games" element={<MyGames />} />
+              <Route path="/launcher/dev-zone_my-items" element={<MyItems />} />
+              <Route path="/launcher/game" element={<GamePage />} />
+              <Route path="/launcher/*" element={<NotFound />} />
             </Routes>
             {/* </div> */}
           </main>
