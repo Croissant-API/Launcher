@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const devEnv = false;
-const PORT_TO_SERVE = !devEnv ? PORT : 4536;
+const PORT_TO_SERVE = devEnv ? "http://localhost:4536/launcher" : "https://croissant-api.fr/launcher/";
 
 let win;
 
@@ -30,7 +30,7 @@ export function createMainWindow() {
     });
 
     win.maximize();
-    win.loadURL('http://localhost:' + PORT_TO_SERVE + '/'); // Adjust the URL as needed
+    win.loadURL(PORT_TO_SERVE); // Adjust the URL as needed
 
     win.setTitleBarOverlay({
         color: "rgba(0, 0, 0, 0)",
