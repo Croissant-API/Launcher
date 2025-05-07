@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { endpoint, url } from "../config/config";
 import { Link } from "react-router-dom";
-import Inventory, { Item } from "../components/Inventory";
-import { ShopItem } from "./Shop copy"; // Adjust path if needed
+import Inventory from "../components/Inventory";
+
+export interface ShopItem {
+    itemId: string;
+    name: string;
+    description: string;
+    price: number;
+    stock?: number; // optionnel, si le backend le fournit,
+    iconHash: string;
+}
 
 // Define the InventoryHandle interface for the ref
 interface InventoryHandle {
@@ -369,9 +377,11 @@ export default function Profile({ user }: ProfileProps) {
                 }}
             >
                 <div style={{ flex: "0 0 70%" }}>
-                    <h2 className="profile-inventory-title">Inventory</h2>
-                    {/* Pass inventoryReloadFlag as a prop */}
-                    <Inventory userId={userId} isMe={userId == window.me.userId} reloadFlag={inventoryReloadFlag} />
+                    <div className="profile-shop-section">
+                        <h2 className="profile-inventory-title">Inventory</h2>
+                        {/* Pass inventoryReloadFlag as a prop */}
+                        <Inventory userId={userId} isMe={userId == window.me.userId} reloadFlag={inventoryReloadFlag} />
+                    </div>
                 </div>
                 <div style={{ flex: "0 0 30%" }}>
                     {/* Increment inventoryReloadFlag after buy */}

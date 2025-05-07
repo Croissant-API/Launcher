@@ -12,25 +12,25 @@ export default class extends Component {
                         {
                             img: "./credits/tier1.png",
                             alt: "Credit 1",
-                            credits: "200 Credits",
+                            credits: "200",
                             price: "0.99€",
                         },
                         {
                             img: "./credits/tier2.png",
                             alt: "Credit 2",
-                            credits: "400 Credits",
+                            credits: "400",
                             price: "1.99€",
                         },
                         {
                             img: "./credits/tier3.png",
                             alt: "Credit 3",
-                            credits: "1000 Credits",
+                            credits: "1000",
                             price: "4.99€",
                         },
                         {
                             img: "./credits/tier4.png",
                             alt: "Credit 4",
-                            credits: "2000 Credits",
+                            credits: "2000",
                             price: "9.99€",
                         },
                     ].map((tier, i) => (
@@ -45,7 +45,7 @@ export default class extends Component {
                                 className="credit-tier-img"
                             />
                             <div className="credit-tier-credits">
-                                {tier.credits}
+                                {tier.credits} <img src="./credit.png" className="credit-icon navbar-credit-img" style={{position: "relative", top: "4px"}}/>
                             </div>
                             <div className="credit-tier-price">
                                 {tier.price}

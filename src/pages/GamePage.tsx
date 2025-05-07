@@ -16,7 +16,32 @@ const GamePage: React.FC = () => {
             .finally(() => setLoading(false));
     }, [gameId]);
 
-    if (loading) return <div>Loading...</div>;
+    // Skeleton content for loading state
+    const skeleton = (
+        <div className="main-details-steam gamepage-root gamepage-blur">
+            <button className="gamepage-back-btn" style={{ opacity: 0 }}>← Back</button>
+            <div className="banner-container" style={{ width: "106vw"}}>
+                <div className="main-banner-steam skeleton-banner" />
+                <div className="main-icon-steam skeleton-icon" />
+            </div>
+            <div className="main-details-content">
+                <div className="skeleton-title" />
+                <div className="skeleton-desc" />
+                <div className="skeleton-properties" />
+            </div>
+        </div>
+    );
+
+    if (loading) {
+        return (
+            <div style={{ position: "relative" }}>
+                {skeleton}
+                <div className="gamepage-loading-overlay">
+                    <div className="inventory-loading-spinner" />
+                </div>
+            </div>
+        );
+    }
     if (!game) return <div>Game not found.</div>;
 
     return (
