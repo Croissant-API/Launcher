@@ -8,7 +8,7 @@ import Library from "./pages/Library";
 import Shop from "./pages/Shop";
 import Credits from "./pages/Credits";
 import Lobby from "./pages/Lobby";
-import Inventory from "./pages/Inventory";
+import Inventory from "./components/Inventory";
 import Profile from "./pages/Profile";
 import SearchPage from "./pages/SearchPage";
 import CreateGame from "./pages/Devzone/CreateGame";
@@ -34,12 +34,12 @@ export default class extends Component {
       <BrowserRouter>
         <div>
           <Navbar />
-          <main style={{ position: "fixed", top: "6rem", bottom: "0", left: "0", right: "0", overflowY: "auto" }}>
+          <main style={{ position: "fixed", left: 0, right: 0, top: "7rem", bottom: 0, overflow: "hidden" }}>
+            {/* <div style={{ width: "100%", height: "100%", overflow: "auto" }}> */}
             <Routes>
               <Route path="/" element={<Library />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/buy-credits" element={<Credits />} />
-              <Route path="/inventory" element={<Inventory />} />
               <Route path="/profile" element={<ProfileWrapper />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/dev-zone" element={<Devzone />} />
@@ -47,9 +47,10 @@ export default class extends Component {
               <Route path="/dev-zone_create-item" element={<CreateItem />} />
               <Route path="/dev-zone_my-games" element={<MyGames />} />
               <Route path="/dev-zone_my-items" element={<MyItems />} />
-              <Route path="/game/:gameId" element={<GamePage />} />
+              <Route path="/game" element={<GamePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            {/* </div> */}
           </main>
           <Lobby />
           {/* <Footer /> */}

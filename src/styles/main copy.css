@@ -1,30 +1,3 @@
-.create-dropdown-content a:hover,
-button,
-footer,
-header,
-nav,
-strong {
-    background-color: var(--background-dark)
-}
-
-.delete,
-.endpoint-link,
-.get,
-.links-group,
-.links-group a,
-.post,
-.put,
-.search-title,
-body,
-button {
-    color: var(--text-color-primary)
-}
-
-.gamepage-credit-icon,
-.shop-root {
-    vertical-align: middle
-}
-
 :root {
     --background-dark: #222;
     --background-medium: #232323;
@@ -35,11 +8,7 @@ button {
     --accent-color: #1e90ff;
     --gold-color: gold;
     --success-color: #3cbf7f;
-    --error-color: red
-}
-
-* {
-    user-select: none
+    --error-color: red;
 }
 
 .links-group,
@@ -50,7 +19,28 @@ nav {
 
 .endpoint-link,
 .links-group a {
-    text-decoration: none
+    text-decoration: none;
+    color: var(--text-color-primary)
+}
+
+.delete,
+.endpoint-link,
+.get,
+.links-group,
+.links-group a,
+.post,
+.put,
+body,
+button {
+    color: var(--text-color-primary)
+}
+
+button,
+footer,
+header,
+nav,
+strong {
+    background-color: var(--background-dark);
 }
 
 .form-group,
@@ -71,14 +61,20 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    height: 100vh
+    height: 100vh;
+    color: var(--text-color-primary);
 }
 
 .api-doc,
 footer,
 header,
 main {
-    padding: 22px 20px
+    padding: 20px
+}
+
+main {
+    scrollbar-width: thin;
+    scrollbar-color: #555 #333
 }
 
 header {
@@ -136,7 +132,9 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem
+    font-size: 1rem;
+    background-color: var(--background-dark);
+    color: var(--text-color-primary);
 }
 
 button:hover {
@@ -186,8 +184,6 @@ a {
     background: #3a8fdc
 }
 
-.mygames-btn-save,
-.myitems-btn-save,
 .post {
     background: var(--success-color)
 }
@@ -229,19 +225,13 @@ a {
     color: var(--accent-color)
 }
 
-.creategame-file-label,
-.createitem-file-label,
-.titlebar,
-strong {
-    color: var(--text-color-primary)
-}
-
 img {
     max-width: 95%;
     height: auto
 }
 
 strong {
+    color: var(--text-color-primary);
     padding: 2px 4px
 }
 
@@ -264,6 +254,7 @@ strong {
 
 .titlebar {
     height: 30px;
+    color: var(--text-color-primary);
     justify-content: center;
     align-items: center;
     app-region: drag
@@ -329,45 +320,62 @@ strong {
     }
 }
 
+/* General container style */
 .container,
 .creategame-container,
 .createitem-container,
 .credits-container,
 .devzone-container,
 .inventory-details-container,
-.main-details-steam,
+.profile-details-container,
 .mygames-container,
 .myitems-container,
-.profile-details-container,
 .shop-games-section,
-.shop-items-section {
+.shop-items-section,
+.main-details-steam {
     background-color: var(--background-medium);
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+    padding: 32px;
     margin: 40px auto;
     width: 90vw;
-    max-width: 1600px
+    max-width: 1600px; /* Limiting max width */
 }
 
+/* Specific adjustments for some containers */
 .creategame-container,
 .createitem-container {
-    padding: 32px;
-    max-width: 500px
+    max-width: 500px;
+}
+
+.credits-container,
+.devzone-container {
+    max-width: 600px;
+    background: linear-gradient(135deg, #23232a 0, #18181c 100%);
+    border-radius: 18px;
 }
 
 .inventory-details-container,
-.profile-details-container,
-.shop-games-section,
-.shop-items-section {
-    border: 2px solid var(--text-color-secondary)
+.profile-details-container {
+    max-width: 500px;
+    border: 2px solid var(--text-color-secondary);
 }
 
+.shop-games-section,
+.shop-items-section {
+    border: 2px solid var(--text-color-secondary);
+}
+
+/* Cards */
 .mygames-card,
 .myitems-card,
 .search-user-card,
 .shop-item-card {
     background: var(--background-medium);
-    border: 2px solid var(--border-color)
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+    border: 2px solid var(--border-color);
+    transition: transform .1s;
 }
 
 .creategame-title,
@@ -395,6 +403,7 @@ strong {
     display: inline-block;
     padding: 8px 16px;
     background: var(--background-dark);
+    color: var(--text-color-primary);
     border-radius: 6px;
     cursor: pointer;
     margin-bottom: 8px;
@@ -409,7 +418,6 @@ strong {
 
 .creategame-checkbox-label,
 .createitem-checkbox-label,
-.links-group,
 .navbar-user-group {
     display: flex;
     align-items: center
@@ -433,13 +441,11 @@ strong {
 
 .credits-container,
 .devzone-container {
-    /* max-width: 600px; */
-    margin: 0px;
+    max-width: 600px;
+    margin: 48px auto;
     padding: 36px;
-    width: calc(100% - 36px - 36px);
-    height: calc(100% - 4.5rem);
     background: linear-gradient(135deg, #23232a 0, #18181c 100%);
-    /* border-radius: 18px; */
+    border-radius: 18px;
     box-shadow: 0 4px 32px rgba(0, 0, 0, .22)
 }
 
@@ -458,14 +464,6 @@ strong {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px
-}
-
-.container,
-.form-row,
-.library-details-row,
-form.game-form {
-    display: flex;
-    flex-direction: column
 }
 
 .credit-tier {
@@ -509,8 +507,16 @@ form.game-form {
 }
 
 .container {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     margin: 20px
+}
+
+.form-row,
+form.game-form {
+    display: flex;
+    flex-direction: column
 }
 
 h1 {
@@ -539,7 +545,7 @@ input[type=text],
 input[type=url],
 textarea {
     padding: 10px;
-    margin-bottom: 64px;
+    margin-bottom: 0;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--background-medium);
@@ -604,7 +610,8 @@ input[type=text].required:focus {
 
 .gamepage-credit-icon {
     width: 18px;
-    height: 18px
+    height: 18px;
+    vertical-align: middle
 }
 
 .inventory-root {
@@ -616,15 +623,14 @@ input[type=text].required:focus {
 .inventory-grid {
     width: 100%;
     max-width: 900px;
-    min-height: 412px;
+    min-height: 120px;
     max-height: 444px;
     display: grid;
     gap: 8px;
     padding: 16px;
     background: var(--background-dark);
     border: 4px solid var(--text-color-secondary);
-    border-radius: 8px;
-    overflow-y: scroll
+    border-radius: 8px
 }
 
 .inventory-item {
@@ -969,8 +975,7 @@ input[type=text].required:focus {
     transition: background .15s
 }
 
-.library-play-btn.can-install,
-.library-play-btn.can-play {
+.library-play-btn.can-install {
     background: #43a047
 }
 
@@ -980,15 +985,13 @@ input[type=text].required:focus {
     color: #23262e
 }
 
-.library-play-btn.can-delete,
-.library-search-input,
-.sidebar-game.selected,
-.steam-library-layout {
-    color: var(--text-color-primary)
+.library-play-btn.can-play {
+    background: #2d8cff
 }
 
 .library-play-btn.can-delete {
-    background: #c0392b
+    background: #c0392b;
+    color: var(--text-color-primary)
 }
 
 .library-play-btn.playing,
@@ -1004,8 +1007,9 @@ input[type=text].required:focus {
 
 .steam-library-layout {
     display: flex;
-    height: calc(100vh - 7rem);
-    background: #181a20
+    height: 100vh;
+    background: #181a20;
+    color: var(--text-color-primary)
 }
 
 .steam-library-sidebar {
@@ -1032,16 +1036,12 @@ input[type=text].required:focus {
     border-radius: 6px;
     border: 1px solid var(--text-color-secondary);
     background: #23262e;
+    color: var(--text-color-primary);
     font-size: 15px
 }
 
-.game-properties,
-.main-empty,
 .sidebar-empty {
-    color: var(--text-color-secondary)
-}
-
-.sidebar-empty {
+    color: var(--text-color-secondary);
     margin-top: 24px;
     text-align: center
 }
@@ -1066,7 +1066,8 @@ input[type=text].required:focus {
 }
 
 .sidebar-game.selected {
-    background: #2d8cff
+    background: #2d8cff;
+    color: var(--text-color-primary)
 }
 
 .sidebar-game.not-installed {
@@ -1088,10 +1089,12 @@ input[type=text].required:focus {
 
 .steam-library-main {
     flex: 1;
+    padding: 40px 48px;
     overflow-y: auto
 }
 
 .main-empty {
+    color: var(--text-color-secondary);
     text-align: center;
     margin-top: 80px;
     font-size: 20px
@@ -1099,11 +1102,12 @@ input[type=text].required:focus {
 
 .main-details-steam {
     background: var(--background-medium);
+    border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
-    margin: 0;
-    width: 100vw;
+    padding: 32px;
+    margin: 40px auto;
+    width: 90vw;
     max-width: 1600px;
-    height: 100vh
 }
 
 .main-banner-steam,
@@ -1115,13 +1119,14 @@ input[type=text].required:focus {
     position: relative;
     width: 100%;
     height: 220px;
-    margin-bottom: 27px
+    margin-bottom: 32px
 }
 
 .main-banner-steam {
     width: 100%;
     height: 220px;
-    object-fit: cover
+    object-fit: cover;
+    border-radius: 12px
 }
 
 .main-icon-steam {
@@ -1145,14 +1150,14 @@ input[type=text].required:focus {
 
 .main-details-content {
     margin-top: 48px;
-    margin-left: 48px;
-    /* width: 100% */
+    width: 100%
 }
 
 .library-btn-col {
+    margin-top: 24px;
     display: flex;
     gap: 8px;
-    flex-direction: row
+    flex-direction: column
 }
 
 .game-properties {
@@ -1160,8 +1165,8 @@ input[type=text].required:focus {
     flex-direction: column;
     gap: 4px;
     font-size: 15px;
-    min-width: 200px;
-    margin-bottom: 24px
+    color: var(--text-color-secondary);
+    min-width: 200px
 }
 
 @media (max-width:700px) {
@@ -1448,16 +1453,6 @@ input[type=text].required:focus {
     text-align: left
 }
 
-.myitems-modal-form,
-.profile-inventory-empty,
-.search-no-users,
-.shop-error,
-.shop-item-stock,
-.shop-loading,
-.shop-title {
-    text-align: center
-}
-
 .mygames-input,
 .myitems-input {
     margin-bottom: 6px;
@@ -1487,12 +1482,18 @@ input[type=text].required:focus {
     justify-content: center
 }
 
+.mygames-btn-save,
+.myitems-btn-save {
+    background: var(--success-color)
+}
+
 .myitems-modal-form {
     background: var(--background-medium);
     border: 1px solid #888;
     border-radius: 8px;
     min-width: 340px;
     color: var(--text-color-primary);
+    text-align: center;
     display: flex;
     flex-direction: column;
     gap: 12px
@@ -1549,7 +1550,7 @@ input[type=text].required:focus {
 
 .profile-root {
     max-width: 900px;
-    margin: 32px auto 0
+    margin: 0 auto
 }
 
 .profile-header {
@@ -1577,7 +1578,7 @@ input[type=text].required:focus {
     width: 100%;
     max-width: 900px;
     min-height: 120px;
-    max-height: 390px;
+    max-height: 444px;
     overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -1590,7 +1591,8 @@ input[type=text].required:focus {
 
 .profile-inventory-empty {
     grid-column: span 8;
-    color: var(--text-color-secondary)
+    color: var(--text-color-secondary);
+    text-align: center
 }
 
 .profile-inventory-item {
@@ -1608,6 +1610,10 @@ input[type=text].required:focus {
 
 .search-header {
     margin-bottom: 24px;
+    color: var(--text-color-primary)
+}
+
+.search-title {
     color: var(--text-color-primary)
 }
 
@@ -1634,7 +1640,8 @@ input[type=text].required:focus {
 .search-no-users {
     color: #ccc;
     margin-top: 16px;
-    grid-column: 1/-1
+    grid-column: 1/-1;
+    text-align: center
 }
 
 .search-user-card {
@@ -1679,13 +1686,14 @@ input[type=text].required:focus {
     font-size: 14px
 }
 
-.shop-loading,
-.shop-section-title,
-.shop-title {
-    color: var(--text-color-primary)
+.shop-root {
+    padding: 32px 0;
+    vertical-align: middle
 }
 
 .shop-title {
+    text-align: center;
+    color: var(--text-color-primary);
     margin-bottom: 32px
 }
 
@@ -1715,18 +1723,19 @@ input[type=text].required:focus {
     height: fit-content
 }
 
-.shop-game-card,
-.steam-library-layout,
-.steam-library-main {
-    overflow: hidden
-}
-
 .shop-section-title {
+    color: var(--text-color-primary);
     margin-bottom: 16px
 }
 
+.shop-loading {
+    text-align: center;
+    color: var(--text-color-primary)
+}
+
 .shop-error {
-    color: var(--error-color)
+    color: var(--error-color);
+    text-align: center
 }
 
 .shop-items-grid {
@@ -1759,7 +1768,8 @@ input[type=text].required:focus {
 
 .shop-item-stock {
     color: var(--text-color-secondary);
-    font-size: 13px
+    font-size: 13px;
+    text-align: center
 }
 
 .shop-item-empty {
@@ -1782,6 +1792,7 @@ input[type=text].required:focus {
     border: 1px solid var(--border-color);
     box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
     position: relative;
+    overflow: hidden;
     min-height: 120px;
     display: flex;
     align-items: center
@@ -1928,80 +1939,4 @@ input[type=text].required:focus {
     font-weight: 700;
     cursor: pointer;
     font-size: 16px
-}
-
-main {
-    scrollbar-width: thin;
-    scrollbar-color: #555 #333;
-    padding: 0
-}
-
-.inventory-loading {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10
-}
-
-.inventory-loading-spinner {
-    border: 4px solid rgba(0, 0, 0, .1);
-    border-left-color: #007bff;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: 1s linear infinite spin
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0)
-    }
-
-    100% {
-        transform: rotate(360deg)
-    }
-}
-
-.create-dropdown {
-    position: relative;
-    display: inline-block
-}
-
-.create-dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: var(--background-medium);
-    min-width: 160px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
-    padding: 8px 0;
-    z-index: 1;
-    left: 0;
-    top: 100%;
-    margin-top: -2px;
-    border-radius: 8px;
-    border: 2px solid var(--border-color)
-}
-
-.create-dropdown-content:hover,
-.create-dropdown:hover .create-dropdown-content {
-    display: block
-}
-
-.create-dropdown-content a {
-    color: #fff;
-    padding: 6px 8px;
-    text-decoration: none;
-    display: block
-}
-
-.create-dropdown-content hr {
-    border: 0;
-    height: 1px;
-    background: #ccc;
-    margin: 5px 0
 }

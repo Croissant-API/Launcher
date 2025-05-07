@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { endpoint, url } from '../../config/config';
-import DevNavbar from '../../components/DevNavbar';
 
 type Game = {
     gameId: string;
@@ -233,7 +232,6 @@ const MyGames = () => {
 
     return (
         <>
-            <DevNavbar />
             <div className="mygames-container">
                 <h1 className="mygames-title">
                     <span className="mygames-title-span">My Games</span>

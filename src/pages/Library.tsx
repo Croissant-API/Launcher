@@ -216,7 +216,6 @@ const Library: React.FC = () => {
     return (
         <div className="steam-library-layout">
             <aside className="steam-library-sidebar">
-                <h3 className="sidebar-title">Games</h3>
                 <input
                     type="text"
                     placeholder="Search games..."
@@ -239,6 +238,13 @@ const Library: React.FC = () => {
                                     game.state === "playing" ? "playing" : "",
                                 ].filter(i=> !!i).join(" ").trim()}
                                 onClick={() => handleSelect(game)}
+                                onDoubleClick={() => {
+                                    if (game.state === "installed") {
+                                        handlePlay();
+                                    } else if (game.state === "to_update") {
+                                        handleUpdate();
+                                    }
+                                }}
                             >
                                 <img
                                     src={ url + `/games-icons/${game.iconHash}` }
@@ -272,6 +278,14 @@ const Library: React.FC = () => {
                             <h2>{selected.name}</h2>
                             <p style={{ color: "#bcbcbc" }}>{selected.description}</p>
                             <div className="library-details-row">
+                                <div className="game-properties">
+                                    {selected.genre && <div><b>Genre:</b> {selected.genre}</div>}
+                                    {selected.developer && <div><b>Developer:</b> {selected.developer}</div>}
+                                    {selected.publisher && <div><b>Publisher:</b> {selected.publisher}</div>}
+                                    {selected.release_date && <div><b>Release Date:</b> {selected.release_date}</div>}
+                                    {selected.platforms && <div><b>Platforms:</b> {selected.platforms}</div>}
+                                    {selected.rating !== undefined && <div><b>Rating:</b> {selected.rating}</div>}
+                                </div>
                                 <div className="library-btn-col">
                                     {selected.state === "not_installed" && (
                                         <button className="library-play-btn can-install" onClick={handleInstall}>Install</button>
@@ -292,14 +306,6 @@ const Library: React.FC = () => {
                                     {selected.state === "playing" && (
                                         <button className="library-play-btn playing" disabled>In Game</button>
                                     )}
-                                </div>
-                                <div className="game-properties">
-                                    {selected.genre && <div><b>Genre:</b> {selected.genre}</div>}
-                                    {selected.developer && <div><b>Developer:</b> {selected.developer}</div>}
-                                    {selected.publisher && <div><b>Publisher:</b> {selected.publisher}</div>}
-                                    {selected.release_date && <div><b>Release Date:</b> {selected.release_date}</div>}
-                                    {selected.platforms && <div><b>Platforms:</b> {selected.platforms}</div>}
-                                    {selected.rating !== undefined && <div><b>Rating:</b> {selected.rating}</div>}
                                 </div>
                             </div>
                         </div>

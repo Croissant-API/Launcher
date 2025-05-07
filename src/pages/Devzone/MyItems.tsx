@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { endpoint, url } from '../../config/config';
-import DevNavbar from '../../components/DevNavbar';
 
 type Item = {
     itemId: string;
@@ -175,7 +174,6 @@ const MyItems = () => {
 
     return (
         <>
-            <DevNavbar />
             <div className="myitems-container">
                 <h1 className="myitems-title">
                     <span className="myitems-title-span">My Items</span>

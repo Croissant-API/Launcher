@@ -288,7 +288,7 @@ export default class extends Component<{}, State> {
                                             <div className="shop-game-info">
                                                 <div className="shop-game-name">
                                                     <Link
-                                                        to={`/game/${game.gameId}`}
+                                                        to={`/game?gameId=${game.gameId}`}
                                                         className="shop-game-link"
                                                     >
                                                         {game.name}
@@ -310,7 +310,7 @@ export default class extends Component<{}, State> {
                                                 Buy
                                             </button>
                                             <Link
-                                                to={`/game/${game.gameId}`}
+                                                to={`/game?gameId=${game.gameId}`}
                                                 className="shop-game-view-btn"
                                             >
                                                 View

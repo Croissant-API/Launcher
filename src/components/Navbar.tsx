@@ -16,18 +16,27 @@ export default class extends Component {
                         <div className="links-group">
                             <Link to="/">Library</Link>
                             <Link to="/shop">Shop</Link>
-                            <Link to="/buy-credits">Credits</Link>
-                            <Link to="/inventory">Inventory</Link> | 
-                            <Link to="/dev-zone">Create</Link>
+                            <div className="create-dropdown">
+                                <Link to="/dev-zone">Create</Link>
+                                <div className="create-dropdown-content">
+                                    <Link to="/dev-zone_my-games">My Games</Link>
+                                    <Link to="/dev-zone_my-items">My Items</Link>
+                                    <hr />
+                                    <Link to="/dev-zone_create-game">Create Game</Link>
+                                    <Link to="/dev-zone_create-item">Create Item</Link>
+                                </div>
+                            </div>
                         </div>
                         <SearchBar />
                         <div className="navbar-user-group">
-                            <div className="navbar-credits">
-                                <img src="./credit.png" className="navbar-credit-img"/>
-                                <div className="navbar-balance">
-                                    <span id="my-balance">0</span>
+                            <Link to="/buy-credits" style={{ textDecoration: "none" }}>
+                                <div className="navbar-credits">
+                                    <img src="./credit.png" className="navbar-credit-img"/>
+                                    <div className="navbar-balance">
+                                        <span id="my-balance">0</span>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                             <Link to="/profile?user=me">
                                 <img 
                                     className="navbar-avatar"

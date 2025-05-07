@@ -1,6 +1,5 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import { endpoint, url } from '../../config/config';
-import DevNavbar from '../../components/DevNavbar';
 
 const CreateItem = () => {
     const [formData, setFormData] = useState({
@@ -117,7 +116,6 @@ const CreateItem = () => {
 
     return (
         <>
-            <DevNavbar />
             <div className="createitem-container">
                 <h1 className="createitem-title">
                     <span>Submit an Item</span>

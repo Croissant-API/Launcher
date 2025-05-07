@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { url, endpoint } from "../config/config";
 
 const GamePage: React.FC = () => {
-    const { gameId } = useParams<{ gameId: string }>();
+    const searchParams = new URLSearchParams(window.location.search);
+    const gameId = searchParams.get("gameId");
     const [game, setGame] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
     const navigate = useNavigate();
@@ -26,7 +27,7 @@ const GamePage: React.FC = () => {
             >
                 ← Back
             </button>
-            <div className="banner-container">
+            <div className="banner-container" style={{ width: "106vw"}}>
                 <img src={url + `/banners-icons/${game.bannerHash}`} alt={game.name} className="main-banner-steam" />
                 <img src={url + `/games-icons/${game.iconHash}`} alt={game.name} className="main-icon-steam" />
             </div>
