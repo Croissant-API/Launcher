@@ -545,7 +545,7 @@ input[type=text],
 input[type=url],
 textarea {
     padding: 10px;
-    margin-bottom: 64px;
+    /* margin-bottom: 64px; */
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--background-medium);
