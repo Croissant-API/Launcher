@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { endpoint, url } from "../config/config";
 import fetchMe from "../utils/fetchMe";
-import "../styles/Inventory.css";
 
 export interface Inventory {
     user_id: string;

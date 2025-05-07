@@ -1,6 +1,4 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
-import '../../styles/GameForm.css';
-import '../../styles/CreateGame.css';
 import { endpoint, url } from '../../config/config';
 import DevNavbar from '../../components/DevNavbar';
 

@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { url, endpoint } from "../config/config";
-import "../styles/GamePage.css";
 
 const GamePage: React.FC = () => {
     const { gameId } = useParams<{ gameId: string }>();

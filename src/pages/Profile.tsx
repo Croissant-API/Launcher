@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { endpoint, url } from "../config/config";
 import { Link } from "react-router-dom";
-import "../styles/Profile.css";
 
 interface DiscordUser {
     id: string;

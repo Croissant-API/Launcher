@@ -1,6 +1,5 @@
 import DevNavbar from "../components/DevNavbar";
 import React, { Component } from "react";
-import "../styles/Devzone.css";
 
 export default class Devzone extends Component {
     render(): React.ReactNode {

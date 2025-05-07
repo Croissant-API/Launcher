@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import "../styles/Credits.css";
 
 export default class extends Component {
     render(): React.ReactNode {

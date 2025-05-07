@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "../styles/Library.css";
 import { endpoint, myUrl, url } from "../config/config";
 type Game = {
     id?: number;

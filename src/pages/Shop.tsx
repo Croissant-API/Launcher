@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { endpoint, url } from "../config/config";
 import fetchMe from "../utils/fetchMe";
 import { Link } from "react-router-dom";
-import "../styles/Shop.css"; // Ajout de l'import du CSS
 
 export interface ShopItem {
     itemId: string;

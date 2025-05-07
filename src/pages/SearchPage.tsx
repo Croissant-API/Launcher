@@ -1,7 +1,6 @@
 import { endpoint, url } from "../config/config";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import "../styles/SearchPage.css";
 
 export default function SearchPage() {
     const location = useLocation();

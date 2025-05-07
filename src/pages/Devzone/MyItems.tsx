@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import '../../styles/GameForm.css';
-import '../../styles/MyItems.css';
 import { endpoint, url } from '../../config/config';
 import DevNavbar from '../../components/DevNavbar';
 

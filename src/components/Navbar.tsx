@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Link } from 'react-router-dom';
 import SearchBar from "./Searchbar";
-import '../styles/Navbar.css';
 
 export default class extends Component {
     componentDidMount() {
@@ -14,7 +13,7 @@ export default class extends Component {
                 <header>
                     {/* <h1>Croissant Inventory System</h1> */}
                     <nav className="navbar-nav">
-                        <div className="navbar-links-group">
+                        <div className="links-group">
                             <Link to="/">Library</Link>
                             <Link to="/shop">Shop</Link>
                             <Link to="/buy-credits">Credits</Link>

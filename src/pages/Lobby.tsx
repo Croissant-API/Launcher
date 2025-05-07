@@ -2,7 +2,6 @@ import { endpoint, url } from "../config/config";
 import React, { useEffect, useState } from "react";
 import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
-import "../styles/Lobby.css";
 
 interface DiscordUser {
     id: string;
@@ -181,7 +180,6 @@ export default function LobbyPage() {
                                 <>
                                     {lobby ? (
                                         <div>
-                                            <h2>Users</h2>
                                             <ul className="lobby-users-list">
                                                 {lobby.users.map((user: DiscordUser) => (
                                                     <li key={user.id}>
