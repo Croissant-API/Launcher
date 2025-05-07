@@ -3,7 +3,7 @@ import path from 'path';
 import simpleGit from 'simple-git';
 import dns from 'dns';
 
-const gamesDir = path.join(__dirname, "..", 'games');
+const gamesDir = path.join(process.APPDATA, 'Croissant-Launcher', 'games');
 
 export const ensureGamesDir = () => {
   if (!fs.existsSync(gamesDir)) {
