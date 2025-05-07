@@ -313,7 +313,7 @@ export default class extends Component<{}, State> {
                                                     Buy
                                                 </button>
                                                 <Link
-                                                    to={`/game?gameId=${game.gameId}`}
+                                                    to={`/launcher/game?gameId=${game.gameId}`}
                                                     className="shop-game-view-btn"
                                                     style={{
                                                         padding: "10px 32px",
