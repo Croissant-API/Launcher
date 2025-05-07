@@ -7,7 +7,7 @@ import { checkInstallationStatus } from './games.js';
 import { spawn } from 'child_process';
 import { BrowserWindow } from 'electron'; // Add this import at the top
 
-const gamesDir = path.join(process.cwd(), 'games');
+const gamesDir = path.join(process.cwd(), '..', 'games');
 
 export function setupWebSocket() {
     const wss = new WebSocketServer({ port: 8081 });
