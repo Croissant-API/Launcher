@@ -14,22 +14,22 @@ export default class extends Component {
                     {/* <h1>Croissant Inventory System</h1> */}
                     <nav className="navbar-nav">
                         <div className="links-group">
-                            <Link to="/">Library</Link>
-                            <Link to="/shop">Shop</Link>
+                            <Link to="/launcher/">Library</Link>
+                            <Link to="/launcher/shop">Shop</Link>
                             <div className="create-dropdown">
                                 Create
                                 <div className="create-dropdown-content">
-                                    <Link to="/dev-zone_my-games">My Games</Link>
-                                    <Link to="/dev-zone_my-items">My Items</Link>
+                                    <Link to="/launcher/dev-zone_my-games">My Games</Link>
+                                    <Link to="/launcher/dev-zone_my-items">My Items</Link>
                                     <hr />
-                                    <Link to="/dev-zone_create-game">Create Game</Link>
-                                    <Link to="/dev-zone_create-item">Create Item</Link>
+                                    <Link to="/launcher/dev-zone_create-game">Create Game</Link>
+                                    <Link to="/launcher/dev-zone_create-item">Create Item</Link>
                                 </div>
                             </div>
                         </div>
                         <SearchBar />
                         <div className="navbar-user-group">
-                            <Link to="/buy-credits" style={{ textDecoration: "none" }}>
+                            <Link to="/launcher/buy-credits" style={{ textDecoration: "none" }}>
                                 <div className="navbar-credits">
                                     <img src="./credit.png" className="navbar-credit-img"/>
                                     <div className="navbar-balance">
@@ -37,7 +37,7 @@ export default class extends Component {
                                     </div>
                                 </div>
                             </Link>
-                            <Link to="/profile?user=me">
+                            <Link to="/launcher/profile?user=me">
                                 <img 
                                     className="navbar-avatar"
                                     src={`https://croissant-api.fr/avatar/${window.me.userId}`}
