@@ -1,0 +1,25 @@
+.gamepage-root {
+    margin-top: 30px;
+    position: relative;
+}
+.gamepage-back-btn {
+    margin: 24px 0 0 24px;
+    padding: 8px 20px;
+    background: #23262e;
+    color: #fff;
+    border: 1px solid #bcbcbc;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 15px;
+    position: absolute;
+    z-index: 10;
+}
+.gamepage-desc {
+    color: #bcbcbc;
+}
+.gamepage-credit-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}

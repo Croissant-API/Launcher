@@ -2,6 +2,7 @@ import { endpoint, url } from "../config/config";
 import React, { useEffect, useState } from "react";
 import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
+import "../styles/Lobby.css";
 
 interface DiscordUser {
     id: string;
@@ -139,65 +140,24 @@ export default function LobbyPage() {
         <>
             {/* Tooltip notification */}
             {tooltip && (
-                <div
-                    style={{
-                        position: "fixed",
-                        top: 24,
-                        right: 24,
-                        background: "#222",
-                        color: "#fff",
-                        border: "1px solid #ccc",
-                        padding: "10px 20px",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        zIndex: 2000,
-                        fontWeight: "bold",
-                        fontSize: 16,
-                        pointerEvents: "none",
-                        transition: "opacity 0.2s",
-                        opacity: tooltip ? 1 : 0,
-                    }}
-                >
-                    <i className="fa fa-check-circle" style={{ color: "lime", marginRight: 8 }} aria-hidden="true"></i>
+                <div className="lobby-tooltip">
+                    <i className="fa fa-check-circle lobby-tooltip-icon" aria-hidden="true"></i>
                     {tooltip}
                 </div>
             )}
             {isCollapsed ? (
                 <button
                     onClick={() => setIsCollapsed(false)}
-                    style={{
-                        position: "fixed",
-                        right: "15px",
-                        bottom: "24px",
-                        width: 48,
-                        height: 48,
-                        borderRadius: "50%",
-                        background: "#222",
-                        color: "#fff",
-                        border: "2px solid #ccc",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        cursor: "pointer",
-                        zIndex: 1000,
-                        fontSize: 24,
-                    }}
+                    className="lobby-expand-btn"
                     aria-label="Expand lobby"
                 >
                     ...
                 </button>
             ) : (
-                <div className="container" style={{ marginBottom: 24, padding: 16, border: "1px solid #ccc", borderRadius: 8, width:"200px", position: "fixed", right: "15px", bottom: 0, backgroundColor: "#111", zIndex: 999 }}>
+                <div className="lobby-container">
                     <button
                         onClick={() => setIsCollapsed(true)}
-                        style={{
-                            position: "absolute",
-                            top: 34,
-                            right: 12,
-                            background: "none",
-                            border: "none",
-                            color: "#fff",
-                            cursor: "pointer",
-                            fontSize: 18,
-                        }}
+                        className="lobby-collapse-btn"
                         aria-label="Collapse lobby"
                     >
                         X
@@ -206,11 +166,11 @@ export default function LobbyPage() {
                         <>
                             <h1>Lobby</h1>
                             {loading && <p>Loading...</p>}
-                            {error && <p style={{ color: "red" }}>{error}</p>}
+                            {error && <p className="lobby-error">{error}</p>}
 
                             {selectedUser && (
-                                <div style={{ marginBottom: 24 }}>
-                                    <button onClick={() => setSelectedUser(null)} style={{ marginBottom: 8 }}>
+                                <div className="lobby-profile-wrapper">
+                                    <button onClick={() => setSelectedUser(null)} className="lobby-back-btn">
                                         ← Retour au lobby
                                     </button>
                                     <Profile user={selectedUser} />
@@ -222,30 +182,16 @@ export default function LobbyPage() {
                                     {lobby ? (
                                         <div>
                                             <h2>Users</h2>
-                                            <ul style={{ listStyleType: "none", padding: 0 }}>
+                                            <ul className="lobby-users-list">
                                                 {lobby.users.map((user: DiscordUser) => (
                                                     <li key={user.id}>
                                                         <button
-                                                            style={{
-                                                                background: "none",
-                                                                border: "none",
-                                                                cursor: "pointer",
-                                                                padding: 0,
-                                                                font: "inherit",
-                                                            }}
+                                                            className="lobby-user-btn"
                                                             onClick={() => navigate("/profile?user=" + user.id)}
                                                         >
-                                                            <img style={{
-                                                                width: 32,
-                                                                height: 32,
-                                                                borderRadius: "50%",
-                                                                marginRight: 8,
-                                                            }}
-                                                            src={url + "/avatar/" + user.id} />
-                                                            <span style={{ 
-                                                                position: "relative",
-                                                                bottom: "10px",
-                                                            }}>
+                                                            <img className="lobby-user-avatar"
+                                                                src={url + "/avatar/" + user.id} />
+                                                            <span className="lobby-user-name">
                                                                 {user.global_name} {user.id === window.me.userId ? "(You)": ""}
                                                             </span>
                                                         </button>
@@ -253,7 +199,7 @@ export default function LobbyPage() {
                                                 ))}
                                             </ul>
                                             {/* Copy Lobby Link and Leave Lobby Buttons in a flex row */}
-                                            <div style={{ display: "flex", flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 8 }}>
+                                            <div className="lobby-actions">
                                                 <button
                                                     onClick={async () => {
                                                         const lobbyLink = "https://croissant-api.fr/join-lobby?lobbyId=" + lobby.lobbyId;

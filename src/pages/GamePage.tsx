@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { url, endpoint } from "../config/config";
+import "../styles/GamePage.css";
 
 const GamePage: React.FC = () => {
     const { gameId } = useParams<{ gameId: string }>();
@@ -19,22 +20,10 @@ const GamePage: React.FC = () => {
     if (!game) return <div>Game not found.</div>;
 
     return (
-        <div className="main-details-steam" style={{ marginTop: 30}}>
+        <div className="main-details-steam gamepage-root">
             <button
                 onClick={() => navigate(-1)}
-                style={{
-                    margin: "24px 0 0 24px",
-                    padding: "8px 20px",
-                    background: "#23262e",
-                    color: "#fff",
-                    border: "1px solid #bcbcbc",
-                    borderRadius: 6,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontSize: 15,
-                    position: "absolute",
-                    zIndex: 10
-                }}
+                className="gamepage-back-btn"
             >
                 ← Back
             </button>
@@ -44,7 +33,7 @@ const GamePage: React.FC = () => {
             </div>
             <div className="main-details-content">
                 <h2>{game.name}</h2>
-                <p style={{ color: "#bcbcbc" }}>{game.description}</p>
+                <p className="gamepage-desc">{game.description}</p>
                 <div className="game-properties">
                     {game.genre && <div><b>Genre:</b> {game.genre}</div>}
                     {game.developer && <div><b>Developer:</b> {game.developer}</div>}
@@ -52,7 +41,7 @@ const GamePage: React.FC = () => {
                     {game.release_date && <div><b>Release Date:</b> {game.release_date}</div>}
                     {game.platforms && <div><b>Platforms:</b> {game.platforms}</div>}
                     {game.rating !== undefined && <div><b>Rating:</b> {game.rating}</div>}
-                    {game.price !== undefined && <div><b>Price:</b> {game.price} <img src="../credit.png" style={{width: 18, height: 18, verticalAlign: "middle"}} /></div>}
+                    {game.price !== undefined && <div><b>Price:</b> {game.price} <img src="../credit.png" className="gamepage-credit-icon" /></div>}
                 </div>
                 {/* Add more details or actions as needed */}
             </div>

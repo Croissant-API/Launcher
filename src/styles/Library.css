@@ -41,28 +41,37 @@
     justify-content: space-between;
 }
 .library-play-btn {
-    margin-top: 16px;
-    background: #444a57;
-    color: #fff;
+    padding: 10px 32px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
     border: none;
-    padding: 12px 0;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 1.1rem;
     cursor: pointer;
-    width: 180px;
-    transition: background 0.2s, color 0.2s;
-    box-shadow: 0 2px 8px #0006;
-    letter-spacing: 1px;
+    background: #2d8cff;
+    color: #fff;
+    transition: background 0.15s;
+}
+
+.library-play-btn.can-install {
+    background: #43a047;
+}
+
+.library-play-btn.can-update {
+    background: #ffb300;
+    color: #23262e;
 }
 
 .library-play-btn.can-play {
-    background: #3cbf7f; /* Vert Steam */
+    background: #2d8cff;
+}
+
+.library-play-btn.can-delete {
+    background: #c0392b;
     color: #fff;
 }
 
 .library-play-btn.playing {
-    background: #3cbf7f; /* Bleu Steam */
+    background: #43a047;
     color: #fff;
 }
 
@@ -71,136 +80,118 @@
     cursor: not-allowed;
 }
 
-.library-play-btn.can-install {
-    background: #888;
-    color: #fff;
-}
-.library-play-btn.can-update {
-    background: #2196f3;
-    color: #fff;
-}
-.library-play-btn.can-delete {
-    background: #c0392b;
-    color: #fff;
-}
-
 .steam-library-layout {
     display: flex;
-    height: 80vh;
-    background: #181a21;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 24px #000a;
+    height: 100vh;
+    background: #181a20;
+    color: #fff;
 }
 .steam-library-sidebar {
     width: 260px;
     background: #23262e;
-    padding: 24px 0;
+    padding: 24px 0 0 0;
+    border-right: 2px solid #bcbcbc;
     display: flex;
     flex-direction: column;
-    border-right: 2px solid #222;
+    align-items: center;
 }
 .sidebar-title {
-    color: #66c0f4;
-    font-size: 1.2rem;
-    margin: 0 0 16px 24px;
-    letter-spacing: 1px;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+.library-search-input {
+    width: 70%;
+    margin: 8px auto 16px auto;
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #bcbcbc;
+    background: #23262e;
+    color: #fff;
+    font-size: 15px;
+}
+.sidebar-empty {
+    color: #bcbcbc;
+    margin-top: 24px;
+    text-align: center;
 }
 .sidebar-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    flex: 1;
-    overflow-y: auto;
+    width: 100%;
 }
 .sidebar-game {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 24px;
+    padding: 8px 16px;
     cursor: pointer;
-    border-left: 4px solid transparent;
-    transition: background 0.2s, border-color 0.2s;
-    color: #fff;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    transition: background 0.15s, color 0.15s;
+    font-size: 16px;
 }
-.sidebar-game.selected,
-.sidebar-game:hover {
-    background: #1b2838;
-    /* border-left: 4px solid #66c0f4; */
+.sidebar-game.selected {
+    background: #2d8cff;
+    color: #fff;
 }
 .sidebar-game.not-installed {
-    color: #888;
-    /* background: #f0f0f0; */
+    opacity: 0.7;
 }
 .sidebar-game.installed {
-    color: #fff;
-    /* background: #222; */
+    font-weight: 700;
 }
 .sidebar-game.to-update {
-    color: #2196f3;
-    /* background: #e3f2fd; */
+    background: #ffb300;
+    color: #23262e;
 }
 .sidebar-game.playing {
-    color: #3cbf7f;
-    /* background: #eafaf1; */
+    background: #43a047;
+    color: #fff;
 }
 .sidebar-thumb {
-    width: 32px;
-    height: 32px;
-    object-fit: cover;
-    border-radius: 4px;
-    background: #111;
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #181a20;
+    border: 1px solid #444;
 }
 .steam-library-main {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 32px;
-    background: #181a21;
+    padding: 40px 48px;
+    overflow-y: auto;
 }
-.main-splash {
-    width: 100%;
-    max-width: 600px;
-    border-radius: 8px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 12px #000a;
+.main-empty {
+    color: #bcbcbc;
+    text-align: center;
+    margin-top: 80px;
+    font-size: 20px;
 }
-.main-details {
-    color: #fff;
-    max-width: 600px;
-}
-.main-details h2 {
-    color: #66c0f4;
-    margin-bottom: 8px;
-}
-
 .main-details-steam {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
     background: #23262e;
     border-radius: 12px;
-    box-shadow: 0 2px 8px #000a;
-    padding: 0;
-    overflow: hidden;
-    margin: 0 auto;
-    max-width: 900px;
-    min-height: 580px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 800px;
 }
 .banner-container {
     position: relative;
     width: 100%;
     height: 220px;
-    background: #4EB2BF;
+    margin-bottom: 32px;
 }
 .main-banner-steam {
     width: 100%;
-    max-width: 100%;
     height: 220px;
     object-fit: cover;
-    display: block;
-    filter: brightness(0.85);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .main-icon-steam {
     position: absolute;
@@ -208,28 +199,29 @@
     bottom: -32px;
     width: 96px;
     height: 96px;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px #000a;
-    background: #23262e;
-    border: 4px solid #181a21;
     object-fit: contain;
-    z-index: 2;
+    border-radius: 16px;
+    background: #181a20;
+    border: 2px solid #bcbcbc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .main-details-content {
-    margin-left: 0;
-    padding: 56px 32px 32px 32px;
+    margin-top: 48px;
     width: 100%;
-    box-sizing: border-box;
+}
+.library-btn-col {
+    margin-top: 24px;
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
 }
 .game-properties {
     display: flex;
-    flex-wrap: wrap;
     flex-direction: column;
-    /* gap: 24px; */
-    margin: 18px 0 0 0;
-    min-width: 900px;
-    color: #bcbcbc;
+    gap: 4px;
     font-size: 15px;
+    color: #bcbcbc;
+    min-width: 200px;
 }
 @media (max-width: 700px) {
     .main-details-steam { max-width: 100vw; }

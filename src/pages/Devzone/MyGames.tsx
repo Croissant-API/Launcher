@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../../styles/GameForm.css';
+import '../../styles/MyGames.css';
 import { endpoint, url } from '../../config/config';
 import DevNavbar from '../../components/DevNavbar';
 
@@ -33,7 +34,6 @@ const MyGames = () => {
     const [submitting, setSubmitting] = useState(false);
     const [tooltip, setTooltip] = useState<{ x: number; y: number; game: Game } | null>(null);
 
-    // Fetch games on mount
     useEffect(() => {
         const fetchGames = async () => {
             setLoading(true);
@@ -54,7 +54,6 @@ const MyGames = () => {
         fetchGames();
     }, []);
 
-    // Start editing a game
     const handleEdit = (game: Game) => {
         setEditingId(game.gameId);
         setFormData({
@@ -79,7 +78,6 @@ const MyGames = () => {
         setSuccess(null);
     };
 
-    // Cancel editing
     const handleCancel = () => {
         setEditingId(null);
         setFormData(null);
@@ -89,7 +87,6 @@ const MyGames = () => {
         setSuccess(null);
     };
 
-    // Handle form changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type, checked } = e.target as any;
         setFormData({
@@ -98,21 +95,18 @@ const MyGames = () => {
         });
     };
 
-    // Handle icon file selection
     const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setIconFile(e.target.files[0]);
         }
     };
 
-    // Handle banner file selection
     const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setBannerFile(e.target.files[0]);
         }
     };
 
-    // Validate form
     const validate = () => {
         const newErrors: any = {};
         if (!formData.name) newErrors.name = 'Name is required';
@@ -121,7 +115,6 @@ const MyGames = () => {
         return newErrors;
     };
 
-    // Submit edit
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSuccess(null);
@@ -243,60 +236,21 @@ const MyGames = () => {
     return (
         <>
             <DevNavbar />
-            <div className="container" style={{
-                padding: "32px",
-                backgroundColor: "#3c3c3c",
-                borderRadius: "8px",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                margin: "40px auto",
-                width: "90vw"
-            }}>
-                <h1 style={{ textAlign: "center", marginBottom: 24 }}>
-                    <span style={{
-                        color: "#fff",
-                        padding: "4px 12px",
-                        borderRadius: 6,
-                        fontWeight: 700,
-                        fontSize: 20,
-                        letterSpacing: 1
-                    }}>My Games</span>
+            <div className="mygames-container">
+                <h1 className="mygames-title">
+                    <span className="mygames-title-span">My Games</span>
                 </h1>
                 {loading ? (
-                    <div style={{ color: "#fff", textAlign: "center" }}>Loading...</div>
+                    <div className="mygames-loading">Loading...</div>
                 ) : (
                     <>
                         {games.length === 0 && (
-                            <div style={{ color: "#fff", textAlign: "center" }}>No games found.</div>
+                            <div className="mygames-empty">No games found.</div>
                         )}
-                        <div
-                            style={{
-                                margin: "0 auto",
-                                display: "grid",
-                                gridTemplateColumns: `repeat(6, 120px)`,
-                                gap: 18,
-                                justifyContent: "center",
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                            }}
-                        >
+                        <div className="mygames-grid">
                             {games.map(game => (
                                 <div key={`game-${game.gameId}`}
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        background: "#232323",
-                                        borderRadius: 8,
-                                        padding: 10,
-                                        position: "relative",
-                                        cursor: "pointer",
-                                        userSelect: "none",
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                                        border: "2px solid #444",
-                                        transition: "transform 0.1s",
-                                        minHeight: 170,
-                                    }}
+                                    className="mygames-card"
                                     tabIndex={0}
                                     draggable={false}
                                     onMouseEnter={e => {
@@ -313,48 +267,16 @@ const MyGames = () => {
                                     <img
                                         src={url + "/games-icons/" + game.iconHash}
                                         alt={game.name}
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            objectFit: "contain",
-                                            marginBottom: 8,
-                                            imageRendering: "pixelated",
-                                            pointerEvents: "none",
-                                            userSelect: "none",
-                                            background: "#111",
-                                            borderRadius: 8,
-                                        }}
+                                        className="mygames-card-icon"
                                         draggable={false}
                                     />
-                                    <div style={{
-                                        fontWeight: 700,
-                                        color: "#fff",
-                                        fontSize: 15,
-                                        marginBottom: 2,
-                                        textAlign: "center",
-                                        width: "100%",
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis"
-                                    }}>{game.name}</div>
-                                    <div style={{
-                                        color: "#ffd700",
-                                        fontWeight: 700,
-                                        fontSize: 15,
-                                        marginBottom: 2,
-                                        textAlign: "center"
-                                    }}>{game.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/></div>
+                                    <div className="mygames-card-name">{game.name}</div>
+                                    <div className="mygames-card-price">
+                                        {game.price}
+                                        <img src="./credit.png" className="mygames-card-credit" />
+                                    </div>
                                     <button
-                                        style={{
-                                            marginTop: 8,
-                                            padding: "6px 12px",
-                                            background: "#3cbf7f",
-                                            color: "#222",
-                                            border: "none",
-                                            borderRadius: 6,
-                                            fontWeight: 600,
-                                            cursor: "pointer"
-                                        }}
+                                        className="mygames-card-editbtn"
                                         onClick={e => {
                                             e.stopPropagation();
                                             handleEdit(game);
@@ -365,75 +287,37 @@ const MyGames = () => {
                                 </div>
                             ))}
                             {Array.from({ length: Math.max(0, 6 * Math.ceil(games.length / 6) - games.length) }).map((_, idx) => (
-                                <div key={`empty-${idx}`} style={{ minHeight: 170 }} />
+                                <div key={`empty-${idx}`} className="mygames-card-empty" />
                             ))}
                         </div>
                         {tooltip && (
                             <div
+                                className="mygames-tooltip"
                                 style={{
-                                    position: "fixed",
                                     left: tooltip.x,
                                     top: tooltip.y,
-                                    background: "#222",
-                                    color: "#fff",
-                                    border: "1px solid #888",
-                                    borderRadius: 6,
-                                    padding: "10px 16px",
-                                    zIndex: 1000,
-                                    pointerEvents: "none",
-                                    minWidth: 200,
-                                    maxWidth: 320,
-                                    boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                    fontSize: 15,
-                                    whiteSpace: "pre-line",
                                 }}
                             >
-                                <div style={{ fontWeight: 700, marginBottom: 4 }}>{tooltip.game.name}</div>
-                                <div style={{ color: "#bcbcbc" }}>{tooltip.game.description}</div>
-                                <div style={{ marginTop: 8, color: "#ffd700" }}>
-                                    Price: {tooltip.game.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
-                                    <span style={{ color: "#bcbcbc", marginLeft: 8 }}>
+                                <div className="mygames-tooltip-title">{tooltip.game.name}</div>
+                                <div className="mygames-tooltip-desc">{tooltip.game.description}</div>
+                                <div className="mygames-tooltip-price">
+                                    Price: {tooltip.game.price}
+                                    <img src="./credit.png" className="mygames-card-credit" />
+                                    <span className="mygames-tooltip-store">
                                         Show in Store: {tooltip.game.showInStore ? "Yes" : "No"}
                                     </span>
                                 </div>
                             </div>
                         )}
                         {editingId && (
-                            <div
-                                style={{
-                                    position: "fixed",
-                                    left: 0,
-                                    top: 0,
-                                    width: "100vw",
-                                    height: "100vh",
-                                    background: "rgba(0,0,0,0.5)",
-                                    zIndex: 3000,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
+                            <div className="mygames-modal-overlay">
                                 <form
                                     onSubmit={handleSubmit}
-                                    style={{
-                                        background: "#232323",
-                                        border: "1px solid #888",
-                                        borderRadius: 8,
-                                        padding: 32,
-                                        minWidth: 900,
-                                        color: "#fff",
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                        textAlign: "center",
-                                        display: "grid",
-                                        gridTemplateColumns: "1fr 1fr 1fr",
-                                        gap: "36px",
-                                        position: "relative",
-                                        top: "50px"
-                                    }}
+                                    className="mygames-modal-form"
                                 >
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                        <h2 style={{ marginBottom: 12, gridColumn: "span 3" }}>Edit Game</h2>
-                                        <label style={{ textAlign: "left" }} htmlFor="name">Name</label>
+                                    <div className="mygames-modal-col">
+                                        <h2 className="mygames-modal-title">Edit Game</h2>
+                                        <label className="mygames-label" htmlFor="name">Name</label>
                                         <input
                                             id="name"
                                             type="text"
@@ -441,10 +325,10 @@ const MyGames = () => {
                                             value={formData.name}
                                             onChange={handleChange}
                                             placeholder="Name"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                             required
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="description">Description</label>
+                                        <label className="mygames-label" htmlFor="description">Description</label>
                                         <textarea
                                             id="description"
                                             name="description"
@@ -452,10 +336,10 @@ const MyGames = () => {
                                             onChange={handleChange}
                                             placeholder="Description"
                                             rows={2}
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                             required
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="price">Price</label>
+                                        <label className="mygames-label" htmlFor="price">Price</label>
                                         <input
                                             id="price"
                                             type="number"
@@ -464,48 +348,48 @@ const MyGames = () => {
                                             onChange={handleChange}
                                             placeholder="Price"
                                             min={0}
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                             required
                                         />
-                                        <label style={{ textAlign: "left" }}>
+                                        <label className="mygames-label">
                                             <input
                                                 type="checkbox"
                                                 name="showInStore"
                                                 checked={formData.showInStore}
                                                 onChange={handleChange}
-                                                style={{ marginRight: 6 }}
+                                                className="mygames-checkbox"
                                             />
                                             Show in Store
                                         </label>
-                                        <label style={{ textAlign: "left" }}>
+                                        <label className="mygames-label">
                                             <input
                                                 type="checkbox"
                                                 name="multiplayer"
                                                 checked={formData.multiplayer}
                                                 onChange={handleChange}
-                                                style={{ marginRight: 6 }}
+                                                className="mygames-checkbox"
                                             />
                                             Multiplayer
                                         </label>
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                        <label style={{ textAlign: "left" }} htmlFor="icon">Game Icon</label>
+                                    <div className="mygames-modal-col">
+                                        <label className="mygames-label" htmlFor="icon">Game Icon</label>
                                         <input
                                             id="icon"
                                             type="file"
                                             accept="image/*"
                                             onChange={handleIconChange}
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="banner">Banner</label>
+                                        <label className="mygames-label" htmlFor="banner">Banner</label>
                                         <input
                                             id="banner"
                                             type="file"
                                             accept="image/*"
                                             onChange={handleBannerChange}
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="genre">Genre</label>
+                                        <label className="mygames-label" htmlFor="genre">Genre</label>
                                         <input
                                             id="genre"
                                             type="text"
@@ -513,9 +397,9 @@ const MyGames = () => {
                                             value={formData.genre}
                                             onChange={handleChange}
                                             placeholder="Genre"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="release_date">Release Date</label>
+                                        <label className="mygames-label" htmlFor="release_date">Release Date</label>
                                         <input
                                             id="release_date"
                                             type="date"
@@ -523,9 +407,9 @@ const MyGames = () => {
                                             value={formData.release_date}
                                             onChange={handleChange}
                                             placeholder="Release Date"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="publisher">Publisher</label>
+                                        <label className="mygames-label" htmlFor="publisher">Publisher</label>
                                         <input
                                             id="publisher"
                                             type="text"
@@ -533,11 +417,11 @@ const MyGames = () => {
                                             value={formData.publisher}
                                             onChange={handleChange}
                                             placeholder="Publisher"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                        <label style={{ textAlign: "left" }} htmlFor="developer">Developer</label>
+                                    <div className="mygames-modal-col">
+                                        <label className="mygames-label" htmlFor="developer">Developer</label>
                                         <input
                                             id="developer"
                                             type="text"
@@ -545,9 +429,9 @@ const MyGames = () => {
                                             value={formData.developer}
                                             onChange={handleChange}
                                             placeholder="Developer"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="platforms">Platforms</label>
+                                        <label className="mygames-label" htmlFor="platforms">Platforms</label>
                                         <input
                                             id="platforms"
                                             type="text"
@@ -555,9 +439,9 @@ const MyGames = () => {
                                             value={formData.platforms}
                                             onChange={handleChange}
                                             placeholder="Platforms"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="website">Website</label>
+                                        <label className="mygames-label" htmlFor="website">Website</label>
                                         <input
                                             id="website"
                                             type="url"
@@ -565,9 +449,9 @@ const MyGames = () => {
                                             value={formData.website}
                                             onChange={handleChange}
                                             placeholder="Website"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
-                                        <label style={{ textAlign: "left" }} htmlFor="trailer_link">Trailer Link</label>
+                                        <label className="mygames-label" htmlFor="trailer_link">Trailer Link</label>
                                         <input
                                             id="trailer_link"
                                             type="url"
@@ -575,16 +459,16 @@ const MyGames = () => {
                                             value={formData.trailer_link}
                                             onChange={handleChange}
                                             placeholder="Trailer Link"
-                                            style={{ marginBottom: 6, width: "100%" }}
+                                            className="mygames-input"
                                         />
                                     </div>
-                                    <div style={{ gridColumn: "span 3", marginTop: 8 }}>
-                                        {errors.submit && <div style={{ color: "red", marginBottom: 6 }}>{errors.submit}</div>}
-                                        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                                            <button type="submit" disabled={submitting} style={{ background: "#3cbf7f" }}>
+                                    <div className="mygames-modal-actions">
+                                        {errors.submit && <div className="mygames-error">{errors.submit}</div>}
+                                        <div className="mygames-modal-btns">
+                                            <button type="submit" disabled={submitting} className="mygames-btn-save">
                                                 {submitting ? "Saving..." : "Save"}
                                             </button>
-                                            <button type="button" onClick={handleCancel} disabled={submitting}>
+                                            <button type="button" onClick={handleCancel} disabled={submitting} className="mygames-btn-cancel">
                                                 Cancel
                                             </button>
                                         </div>

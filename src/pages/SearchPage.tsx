@@ -1,6 +1,7 @@
 import { endpoint, url } from "../config/config";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import "../styles/SearchPage.css";
 
 export default function SearchPage() {
     const location = useLocation();
@@ -47,46 +48,21 @@ export default function SearchPage() {
     }, [query]);
 
     return (
-        <div className="container">
-            <div style={{ marginBottom: 24, color: "#fff" }}>
+        <div className="search-container">
+            <div className="search-header">
                 Search results for <strong>{query}</strong>
             </div>
-            <h1 style={{ color: "#fff" }}>Users</h1>
-            <div
-                style={{
-                    width: "90vw",
-                    margin: "0 auto",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(6, 1fr)",
-                    gap: 18,
-                    justifyContent: "center",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                }}
-            >
+            <h1 className="search-title">Users</h1>
+            <div className="search-users-grid">
                 {users.length === 0 && (
-                    <div style={{ color: "#ccc", marginTop: 16, gridColumn: "1 / -1", textAlign: "center" }}>
+                    <div className="search-no-users">
                         No users found.
                     </div>
                 )}
                 {users.map((user, idx) => (
                     <div
                         key={user.id || idx}
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            background: "#232323",
-                            borderRadius: 8,
-                            padding: 16,
-                            position: "relative",
-                            cursor: "pointer",
-                            userSelect: "none",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                            border: "2px solid #444",
-                            transition: "transform 0.1s, box-shadow 0.1s",
-                        }}
+                        className="search-user-card"
                         tabIndex={0}
                         onClick={() => window.location.href = `/profile?user=${user.id}`}
                         onMouseOver={e => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.28)")}
@@ -95,38 +71,12 @@ export default function SearchPage() {
                         <img
                             src={url + "/avatar/" + user.id}
                             alt="User Avatar"
-                            style={{
-                                width: 64,
-                                height: 64,
-                                borderRadius: "50%",
-                                marginBottom: 12,
-                                border: "2px solid #888",
-                                background: "#1a1a1a",
-                                objectFit: "cover",
-                            }}
+                            className="search-user-avatar"
                         />
-                        <div style={{
-                            fontWeight: 700,
-                            color: "#fff",
-                            fontSize: 16,
-                            marginBottom: 4,
-                            textAlign: "center",
-                            width: "100%",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis"
-                        }}>
+                        <div className="search-user-name">
                             {user.global_name || user.username}
                         </div>
-                        <div style={{
-                            color: "#aaa",
-                            fontSize: 14,
-                            textAlign: "center",
-                            width: "100%",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis"
-                        }}>
+                        <div className="search-user-username">
                             @{user.username}
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import '../../styles/GameForm.css';
+import '../../styles/CreateItem.css';
 import { endpoint, url } from '../../config/config';
 import DevNavbar from '../../components/DevNavbar';
 
@@ -119,26 +120,9 @@ const CreateItem = () => {
     return (
         <>
             <DevNavbar />
-            <div
-                className="container"
-                style={{
-                    padding: "32px",
-                    backgroundColor: "#3c3c3c",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                    maxWidth: 500,
-                    margin: "40px auto"
-                }}
-            >
-                <h1 style={{ textAlign: "center", marginBottom: 24 }}>
-                    <span style={{
-                        color: "#fff",
-                        padding: "4px 12px",
-                        borderRadius: 6,
-                        fontWeight: 700,
-                        fontSize: 20,
-                        letterSpacing: 1
-                    }}>Submit an Item</span>
+            <div className="createitem-container">
+                <h1 className="createitem-title">
+                    <span>Submit an Item</span>
                 </h1>
                 <form onSubmit={handleSubmit} className="game-form">
                     <div className="form-row">
@@ -168,7 +152,6 @@ const CreateItem = () => {
                             required
                             rows={4}
                             className="dark-input"
-                            style={{ resize: "vertical" }}
                         />
                     </div>
                     {errors.description && <span className="error">{errors.description}</span>}
@@ -190,14 +173,14 @@ const CreateItem = () => {
                     </div>
                     {errors.price && <span className="error">{errors.price}</span>}
                     <div className="form-row">
-                        <label htmlFor="showInStore" style={{ display: "flex", alignItems: "center" }}>
+                        <label htmlFor="showInStore" className="createitem-checkbox-label">
                             <input
                                 id="showInStore"
                                 type="checkbox"
                                 name="showInStore"
                                 checked={formData.showInStore}
                                 onChange={handleChange}
-                                style={{ marginRight: 8 }}
+                                className="createitem-checkbox"
                             />
                             Show in Store
                         </label>
@@ -206,16 +189,7 @@ const CreateItem = () => {
                         <label htmlFor="icon">
                             Icon
                         </label>
-                        <label htmlFor="icon" className="custom-file-label" style={{
-                            display: "inline-block",
-                            padding: "8px 16px",
-                            background: "#222",
-                            color: "#fff",
-                            borderRadius: 6,
-                            cursor: "pointer",
-                            marginBottom: 8,
-                            border: "1px solid #444"
-                        }}>
+                        <label htmlFor="icon" className="custom-file-label createitem-file-label">
                             {iconFile ? "Change Icon" : "Choose Icon"}
                             <input
                                 id="icon"
@@ -228,12 +202,12 @@ const CreateItem = () => {
                             />
                         </label>
                         {iconFile && (
-                            <span style={{ color: "#3cbf7f", marginLeft: 8 }}>Selected: {iconFile.name}</span>
+                            <span className="createitem-ready">Selected: {iconFile.name}</span>
                         )}
                     </div>
                     {errors.submit && <span className="error">{errors.submit}</span>}
-                    {success && <span style={{ color: "#3cbf7f", fontWeight: 600 }}>{success}</span>}
-                    <button type="submit" style={{ marginTop: 10 }} disabled={loading}>
+                    {success && <span className="createitem-success">{success}</span>}
+                    <button type="submit" className="createitem-submit-btn" disabled={loading}>
                         {loading ? "Submitting..." : "Submit"}
                     </button>
                 </form>

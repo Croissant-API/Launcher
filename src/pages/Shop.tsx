@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { endpoint, url } from "../config/config";
 import fetchMe from "../utils/fetchMe";
 import { Link } from "react-router-dom";
+import "../styles/Shop.css"; // Ajout de l'import du CSS
 
 export interface ShopItem {
     itemId: string;
@@ -24,8 +25,8 @@ interface State {
         amount?: number;
         item?: ShopItem;
     } | null;
-    promptOwnerUser?: any | null; // <-- Add this line
-    games: any[]; // Ajouté pour la liste des jeux
+    promptOwnerUser?: any | null;
+    games: any[];
     alert?: { message: string } | null;
 }
 
@@ -37,7 +38,7 @@ export default class extends Component<{}, State> {
         tooltip: null,
         prompt: null,
         promptOwnerUser: null,
-        games: [], // Ajouté pour la liste des jeux
+        games: [],
         alert: null,
     };
 
@@ -108,7 +109,7 @@ export default class extends Component<{}, State> {
         let ownerUser: any = null;
         if (item && (item as any).owner) {
             try {
-                const res = await fetch(endpoint +"/users/" + (item as any).owner);
+                const res = await fetch(endpoint + "/users/" + (item as any).owner);
                 if (res.ok) ownerUser = await res.json();
             } catch {}
         }
@@ -122,14 +123,14 @@ export default class extends Component<{}, State> {
         if (this.state.prompt) {
             const { amount } = this.state.prompt;
             this.state.prompt.resolve({ confirmed, amount });
-            this.setState({ prompt: null, promptOwnerUser: null }); // clear owner
+            this.setState({ prompt: null, promptOwnerUser: null });
         }
     };
 
     handlePromptAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Math.max(1, Math.min(Number(e.target.value), this.state.prompt?.maxAmount || Number.MAX_SAFE_INTEGER));
-        this.setState(prev => ({
-            prompt: prev.prompt ? { ...prev.prompt, amount: value } : null
+        this.setState((prev) => ({
+            prompt: prev.prompt ? { ...prev.prompt, amount: value } : null,
         }));
     };
 
@@ -201,7 +202,7 @@ export default class extends Component<{}, State> {
 
     render(): React.ReactNode {
         const { items, loading, error, tooltip, prompt, games = [] } = this.state;
-        const columns = 4; // Fewer columns for a shop look
+        const columns = 4;
         const minRows = 4;
         const totalItems = items.length;
         const rows = Math.max(minRows, Math.ceil(totalItems / columns));
@@ -209,63 +210,24 @@ export default class extends Component<{}, State> {
         const emptyCells = totalCells - totalItems;
 
         return (
-            <div style={{ padding: "32px 0", verticalAlign: "middle" }}>
-                <h1 style={{ textAlign: "center", color: "#fff", marginBottom: 32 }}>Shop</h1>
-                <div style={{
-                    display: "flex",
-                    gap: 32,
-                    alignItems: "flex-start",
-                    justifyContent: "center",
-                    maxWidth: 1600,
-                    margin: "0 auto",
-                    width: "90vw", // Ajouté ici
-                    minWidth: 600, // Ajouté ici
-                }}>
-                    {/* Section Items */}
-                    <div style={{
-                        flex: 1,
-                        minWidth: 320,
-                        // maxWidth: 400,
-                        maxHeight: "60vh",
-                        background: "#232323",
-                        borderRadius: 12,
-                        padding: 24,
-                        color: "#fff",
-                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                        border: "2px solid #bcbcbc",
-                        overflowY: "scroll",
-                        height: "fit-content"
-                    }}>
-                        <h2 style={{ color: "#fff", marginBottom: 16 }}>Items</h2>
-                        {loading && <p style={{ textAlign: "center", color: "#fff" }}>Loading...</p>}
-                        {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+            <div className="shop-root">
+                <h1 className="shop-title">Shop</h1>
+                <div className="shop-sections">
+                    <div className="shop-items-section">
+                        <h2 className="shop-section-title">Items</h2>
+                        {loading && <p className="shop-loading">Loading...</p>}
+                        {error && <p className="shop-error">{error}</p>}
                         {!loading && !error && (
                             <div
+                                className="shop-items-grid"
                                 style={{
-                                    margin: "0 auto",
-                                    display: "grid",
                                     gridTemplateColumns: `repeat(${columns}, 120px)`,
-                                    gap: 18,
-                                    justifyContent: "center",
                                 }}
                             >
-                                {items.filter(i=>i.itemId).map((item) => (
+                                {items.filter((i) => i.itemId).map((item) => (
                                     <div
                                         key={item.itemId}
-                                        style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            alignItems: "center",
-                                            background: "#232323",
-                                            borderRadius: 8,
-                                            padding: 10,
-                                            position: "relative",
-                                            cursor: "pointer",
-                                            userSelect: "none",
-                                            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                                            border: "2px solid #444",
-                                            transition: "transform 0.1s",
-                                        }}
+                                        className="shop-item-card"
                                         tabIndex={0}
                                         draggable={false}
                                         onMouseEnter={(e) => this.handleMouseEnter(e, item)}
@@ -275,223 +237,100 @@ export default class extends Component<{}, State> {
                                         <img
                                             src={url + "/items-icons/" + item.iconHash}
                                             alt={item.name}
-                                            style={{
-                                                width: 64,
-                                                height: 64,
-                                                objectFit: "contain",
-                                                marginBottom: 8,
-                                                imageRendering: "pixelated",
-                                                pointerEvents: "none",
-                                                userSelect: "none",
-                                            }}
+                                            className="shop-item-img"
                                             draggable={false}
                                         />
-                                        <div style={{
-                                            fontWeight: 700,
-                                            color: "#fff",
-                                            fontSize: 15,
-                                            marginBottom: 2,
-                                            textAlign: "center",
-                                            width: "100%",
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis"
-                                        }}>{item.name}</div>
-                                        <div style={{
-                                            color: "#ffd700",
-                                            fontWeight: 700,
-                                            fontSize: 15,
-                                            marginBottom: 2,
-                                            textAlign: "center"
-                                        }}>{item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/></div>
+                                        <div className="shop-item-name">{item.name}</div>
+                                        <div className="shop-item-price">
+                                            {item.price}
+                                            <img src="./credit.png" className="shop-credit-icon" />
+                                        </div>
                                         {item.stock !== undefined && (
-                                            <div style={{
-                                                color: "#bcbcbc",
-                                                fontSize: 13,
-                                                textAlign: "center"
-                                            }}>Stock: {item.stock}</div>
+                                            <div className="shop-item-stock">Stock: {item.stock}</div>
                                         )}
                                     </div>
                                 ))}
                                 {Array.from({ length: emptyCells }).map((_, idx) => (
                                     <div
                                         key={`empty-${idx}`}
-                                        style={{
-                                            background: "none",
-                                            borderRadius: 8,
-                                            minHeight: 100,
-                                        }}
+                                        className="shop-item-empty"
                                         draggable={false}
                                     />
                                 ))}
                             </div>
                         )}
                     </div>
-                    {/* Section Jeux */}
-                    <div style={{
-                        flex: 1,
-                        minWidth: 320,
-                        // maxWidth: 400,
-                        maxHeight: "60vh",
-                        background: "#232323",
-                        borderRadius: 12,
-                        padding: 24,
-                        color: "#fff",
-                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                        border: "2px solid #bcbcbc",
-                        overflowY: "scroll",
-                        height: "fit-content"
-                    }}>
-                        <h2 style={{ color: "#fff", marginBottom: 16 }}>Games</h2>
+                    <div className="shop-games-section">
+                        <h2 className="shop-section-title">Games</h2>
                         {games.length === 0 ? (
-                            <div style={{ color: "#bcbcbc" }}>No games available.</div>
+                            <div className="shop-games-empty">No games available.</div>
                         ) : (
-                            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                            <ul className="shop-games-list">
                                 {games
-                                    .slice() // pour ne pas muter le state
+                                    .slice()
                                     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
                                     .map((game: any) => (
-                                    <li
-                                        key={game.gameId}
-                                        style={{
-                                            marginBottom: 18,
-                                            padding: 0,
-                                            background: "#181818",
-                                            borderRadius: 8,
-                                            border: "1px solid #444",
-                                            boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
-                                            position: "relative",
-                                            overflow: "hidden",
-                                            minHeight: 120,
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        {/* Banner as background */}
-                                        {game.bannerHash && (
+                                        <li
+                                            key={game.gameId}
+                                            className="shop-game-card"
+                                        >
+                                            {game.bannerHash && (
+                                                <img
+                                                    src={url + "/banners-icons/" + game.bannerHash}
+                                                    alt="banner"
+                                                    className="shop-game-banner"
+                                                />
+                                            )}
                                             <img
-                                                src={url + "/banners-icons/" + game.bannerHash}
-                                                alt="banner"
-                                                style={{
-                                                    position: "absolute",
-                                                    left: 0,
-                                                    top: 0,
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    objectFit: "cover",
-                                                    opacity: 0.18,
-                                                    zIndex: 0,
-                                                    pointerEvents: "none",
-                                                }}
+                                                src={url + "/games-icons/" + game.iconHash}
+                                                alt={game.name}
+                                                className="shop-game-icon"
                                             />
-                                        )}
-                                        {/* Game icon at the side */}
-                                        <img
-                                            src={url + "/games-icons/" + game.iconHash}
-                                            alt={game.name}
-                                            style={{
-                                                width: 64,
-                                                height: 64,
-                                                objectFit: "contain",
-                                                borderRadius: 8,
-                                                margin: "0 20px",
-                                                background: "#222",
-                                                zIndex: 1,
-                                            }}
-                                        />
-                                        {/* Game info */}
-                                        <div style={{ zIndex: 1, flex: 1 }}>
-                                            <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>
-                                                <Link
-                                                    to={`/game/${game.gameId}`}
-                                                    style={{
-                                                        color: "#61dafb",
-                                                        textDecoration: "underline",
-                                                        cursor: "pointer",
-                                                    }}
-                                                >
-                                                    {game.name}
-                                                </Link>
+                                            <div className="shop-game-info">
+                                                <div className="shop-game-name">
+                                                    <Link
+                                                        to={`/game/${game.gameId}`}
+                                                        className="shop-game-link"
+                                                    >
+                                                        {game.name}
+                                                    </Link>
+                                                </div>
+                                                <div className="shop-game-desc">{game.description}</div>
+                                                <div className="shop-game-price">
+                                                    Price: {game.price}
+                                                    <img src="./credit.png" className="shop-credit-icon" />
+                                                </div>
+                                                <div className="shop-game-rating">
+                                                    Rating: {game.rating ?? "N/A"}
+                                                </div>
                                             </div>
-                                            <div style={{ color: "#bcbcbc", marginBottom: 6 }}>{game.description}</div>
-                                            <div style={{ color: "#ffd700", fontWeight: 700 }}>
-                                                Price: {game.price}
-                                                <img src="./credit.png" style={{ width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px' }} />
-                                            </div>
-                                            <div style={{ color: "#bcbcbc", marginTop: 4 }}>
-                                                Rating: {game.rating ?? "N/A"}
-                                            </div>
-                                        </div>
-                                        {/* Buy button */}
-                                        <button
-                                            style={{
-                                                marginRight: 24,
-                                                padding: "8px 20px",
-                                                background: "#4caf50",
-                                                color: "#fff",
-                                                border: "none",
-                                                borderRadius: 4,
-                                                fontWeight: 700,
-                                                cursor: "pointer",
-                                                fontSize: 15,
-                                                zIndex: 2,
-                                            }}
-                                            onClick={() => this.handleBuyGame(game)}
-                                        >
-                                            Buy
-                                        </button>
-                                        <Link
-                                            to={`/game/${game.gameId}`}
-                                            style={{
-                                                marginRight: 12,
-                                                padding: "8px 20px",
-                                                background: "#1976d2",
-                                                color: "#fff",
-                                                border: "none",
-                                                borderRadius: 4,
-                                                fontWeight: 700,
-                                                cursor: "pointer",
-                                                fontSize: 15,
-                                                zIndex: 2,
-                                                textDecoration: "none",
-                                                display: "inline-block"
-                                            }}
-                                        >
-                                            View
-                                        </Link>
-                                    </li>
-                                ))}
+                                            <button
+                                                className="shop-game-buy-btn"
+                                                onClick={() => this.handleBuyGame(game)}
+                                            >
+                                                Buy
+                                            </button>
+                                            <Link
+                                                to={`/game/${game.gameId}`}
+                                                className="shop-game-view-btn"
+                                            >
+                                                View
+                                            </Link>
+                                        </li>
+                                    ))}
                             </ul>
                         )}
                     </div>
                 </div>
-                {/* Tooltip et Prompt inchangés */}
                 {tooltip && (
-                    <div
-                        style={{
-                            position: "fixed",
-                            left: tooltip.x,
-                            top: tooltip.y,
-                            background: "#222",
-                            color: "#fff",
-                            border: "1px solid #888",
-                            borderRadius: 6,
-                            padding: "10px 16px",
-                            zIndex: 1000,
-                            pointerEvents: "none",
-                            minWidth: 200,
-                            maxWidth: 320,
-                            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                            fontSize: 15,
-                            whiteSpace: "pre-line",
-                        }}
-                    >
-                        <div style={{ fontWeight: 700, marginBottom: 4 }}>{tooltip.item.name}</div>
-                        <div style={{ color: "#bcbcbc" }}>{tooltip.item.description}</div>
-                        <div style={{ marginTop: 8, color: "#ffd700" }}>
-                            Price: {tooltip.item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
+                    <div className="shop-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
+                        <div className="shop-tooltip-name">{tooltip.item.name}</div>
+                        <div className="shop-tooltip-desc">{tooltip.item.description}</div>
+                        <div className="shop-tooltip-price">
+                            Price: {tooltip.item.price}
+                            <img src="./credit.png" className="shop-credit-icon" />
                             {tooltip.item.stock !== undefined && (
-                                <span style={{ color: "#bcbcbc", marginLeft: 8 }}>
+                                <span className="shop-tooltip-stock">
                                     Stock: {tooltip.item.stock}
                                 </span>
                             )}
@@ -499,79 +338,38 @@ export default class extends Component<{}, State> {
                     </div>
                 )}
                 {prompt && (
-                    <div
-                        style={{
-                            position: "fixed",
-                            left: 0,
-                            top: 0,
-                            width: "100vw",
-                            height: "100vh",
-                            background: "rgba(0,0,0,0.5)",
-                            zIndex: 3000,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <div
-                            style={{
-                                background: "#232323",
-                                border: "1px solid #888",
-                                borderRadius: 8,
-                                padding: 32,
-                                minWidth: 300,
-                                color: "#fff",
-                                boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                textAlign: "center",
-                            }}
-                        >
-                            {/* Item details at the top */}
+                    <div className="shop-prompt-overlay">
+                        <div className="shop-prompt">
                             {prompt.item && (
-                                <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 24 }}>
+                                <div className="shop-prompt-item-details">
                                     <img
                                         src={url + "/items-icons/" + prompt.item.itemId + ".png"}
                                         alt={prompt.item.name}
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            objectFit: "contain",
-                                            imageRendering: "pixelated",
-                                            background: "#1a1a1a",
-                                            borderRadius: 8,
-                                            border: "2px solid #888",
-                                        }}
+                                        className="shop-prompt-item-img"
                                     />
-                                    <div style={{ textAlign: "left" }}>
-                                        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{prompt.item.name}</div>
-                                        <div style={{ color: "#bcbcbc", marginBottom: 8 }}>{prompt.item.description}</div>
-                                        <div style={{ color: "#ffd700", fontWeight: 700 }}>
-                                            Price: {prompt.item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
+                                    <div className="shop-prompt-item-info">
+                                        <div className="shop-prompt-item-name">{prompt.item.name}</div>
+                                        <div className="shop-prompt-item-desc">{prompt.item.description}</div>
+                                        <div className="shop-prompt-item-price">
+                                            Price: {prompt.item.price}
+                                            <img src="./credit.png" className="shop-credit-icon" />
                                             {prompt.item.stock !== undefined && (
-                                                <span style={{ color: "#bcbcbc", marginLeft: 8 }}>
+                                                <span className="shop-prompt-item-stock">
                                                     Stock: {prompt.item.stock}
                                                 </span>
                                             )}
                                         </div>
-                                        {/* Owner info */}
                                         {(prompt.item as any).owner && this.state.promptOwnerUser && (
-                                            <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                                            <div className="shop-prompt-item-owner">
                                                 Creator:{" "}
                                                 <Link
                                                     to={`/profile?user=${(prompt.item as any).owner}`}
-                                                    style={{
-                                                        color: "white",
-                                                        textDecoration: "underline",
-                                                        cursor: "pointer",
-                                                        fontWeight: 600,
-                                                    }}
+                                                    className="shop-prompt-owner-link"
                                                 >
-                                                    <img style={{
-                                                        width: 24,
-                                                        position: "relative",
-                                                        borderRadius: "50%",
-                                                        marginRight: 8,
-                                                        top: 6,
-                                                    }} src={url + "/avatar/" + (prompt.item as any).owner }/>
+                                                    <img
+                                                        className="shop-prompt-owner-avatar"
+                                                        src={url + "/avatar/" + (prompt.item as any).owner}
+                                                    />
                                                     {this.state.promptOwnerUser.global_name || this.state.promptOwnerUser.username}
                                                 </Link>
                                             </div>
@@ -579,62 +377,36 @@ export default class extends Component<{}, State> {
                                     </div>
                                 </div>
                             )}
-                            <div style={{ marginBottom: 24, fontSize: 18 }}>{prompt.message}</div>
+                            <div className="shop-prompt-message">{prompt.message}</div>
                             {prompt.maxAmount !== 1 && (
-                                <div style={{ marginBottom: 24 }}>
+                                <div className="shop-prompt-amount">
                                     <input
                                         type="number"
                                         min={1}
                                         max={prompt.maxAmount || undefined}
                                         value={prompt.amount}
                                         onChange={this.handlePromptAmountChange}
-                                        style={{
-                                            width: 80,
-                                            fontSize: 16,
-                                            padding: "4px 8px",
-                                            borderRadius: 4,
-                                            border: "1px solid #888",
-                                            marginRight: 8,
-                                            textAlign: "center",
-                                        }}
+                                        className="shop-prompt-amount-input"
                                     />
                                     {prompt.maxAmount && (
-                                        <span style={{ color: "#bcbcbc" }}>/ {prompt.maxAmount}</span>
+                                        <span className="shop-prompt-amount-max">/ {prompt.maxAmount}</span>
                                     )}
                                     {prompt.item && (
-                                        <span style={{ color: "#ffd700", marginLeft: 8 }}>
-                                            Total: {(prompt.amount || 1) * (prompt.item.price || 0)}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
+                                        <span className="shop-prompt-amount-total">
+                                            Total: {(prompt.amount || 1) * (prompt.item.price || 0)}
+                                            <img src="./credit.png" className="shop-credit-icon" />
                                         </span>
                                     )}
                                 </div>
                             )}
                             <button
-                                style={{
-                                    marginRight: 16,
-                                    padding: "8px 24px",
-                                    background: "#4caf50",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    fontSize: 16,
-                                }}
+                                className="shop-prompt-buy-btn"
                                 onClick={() => this.handlePromptResult(true)}
                             >
                                 Buy
                             </button>
                             <button
-                                style={{
-                                    padding: "8px 24px",
-                                    background: "#f44336",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    fontSize: 16,
-                                }}
+                                className="shop-prompt-cancel-btn"
                                 onClick={() => this.handlePromptResult(false)}
                             >
                                 Cancel
@@ -643,44 +415,11 @@ export default class extends Component<{}, State> {
                     </div>
                 )}
                 {this.state.alert && (
-                    <div
-                        style={{
-                            position: "fixed",
-                            left: 0,
-                            top: 0,
-                            width: "100vw",
-                            height: "100vh",
-                            background: "rgba(0,0,0,0.5)",
-                            zIndex: 4000,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <div
-                            style={{
-                                background: "#232323",
-                                border: "1px solid #888",
-                                borderRadius: 8,
-                                padding: 32,
-                                minWidth: 300,
-                                color: "#fff",
-                                boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                textAlign: "center",
-                            }}
-                        >
-                            <div style={{ fontSize: 18, marginBottom: 24 }}>{this.state.alert.message}</div>
+                    <div className="shop-alert-overlay">
+                        <div className="shop-alert">
+                            <div className="shop-alert-message">{this.state.alert.message}</div>
                             <button
-                                style={{
-                                    padding: "8px 24px",
-                                    background: "#4caf50",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    fontSize: 16,
-                                }}
+                                className="shop-alert-ok-btn"
                                 onClick={() => this.setState({ alert: null })}
                             >
                                 OK

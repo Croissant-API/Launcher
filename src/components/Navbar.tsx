@@ -1,7 +1,7 @@
-
 import React, { Component } from "react";
 import { Link } from 'react-router-dom';
 import SearchBar from "./Searchbar";
+import '../styles/Navbar.css';
 
 export default class extends Component {
     componentDidMount() {
@@ -10,11 +10,11 @@ export default class extends Component {
     }
     render() {
         return (
-            <div style={{position: "fixed", zIndex: 1, width: "100%", backgroundColor: "white", top: "2rem"}}>
+            <div className="navbar-fixed">
                 <header>
                     {/* <h1>Croissant Inventory System</h1> */}
-                    <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div className="links-group">
+                    <nav className="navbar-nav">
+                        <div className="navbar-links-group">
                             <Link to="/">Library</Link>
                             <Link to="/shop">Shop</Link>
                             <Link to="/buy-credits">Credits</Link>
@@ -22,28 +22,25 @@ export default class extends Component {
                             <Link to="/dev-zone">Create</Link>
                         </div>
                         <SearchBar />
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <div className="credits" style={{ display: 'flex', alignItems: 'center', marginRight: '1rem', gap: '4px' }}>
-                                <img src="./credit.png" style={{width: '24px', height:'24px', marginLeft: "4px" }}/>
-                                <div style={{ display: 'flex', flexDirection: 'row' }}>
+                        <div className="navbar-user-group">
+                            <div className="navbar-credits">
+                                <img src="./credit.png" className="navbar-credit-img"/>
+                                <div className="navbar-balance">
                                     <span id="my-balance">0</span>
                                 </div>
                             </div>
                             <Link to="/profile?user=me">
                                 <img 
-                                style={{width: '32px', height:'32px', marginRight: "16px", borderRadius: "50%"}}
-                                src={`https://croissant-api.fr/avatar/${window.me.userId}`}
+                                    className="navbar-avatar"
+                                    src={`https://croissant-api.fr/avatar/${window.me.userId}`}
                                 />
                             </Link>
-                            <button className="method"
-                            style={{
-                                color: "red"
-                            }}
-                            onClick={() => {
-                                localStorage.removeItem("token");
-                                localStorage.removeItem("verificationKey");
-                                location.reload();
-                            }}
+                            <button className="method navbar-logout-btn"
+                                onClick={() => {
+                                    localStorage.removeItem("token");
+                                    localStorage.removeItem("verificationKey");
+                                    location.reload();
+                                }}
                             ><i className="fa fa-sign-out"></i></button>
                         </div>
                     </nav>

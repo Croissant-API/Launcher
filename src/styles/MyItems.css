@@ -1,0 +1,182 @@
+.myitems-container {
+    padding: 32px;
+    background-color: #3c3c3c;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    margin: 40px auto;
+    width: 90vw;
+}
+.myitems-title {
+    text-align: center;
+    margin-bottom: 24px;
+}
+.myitems-title-span {
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+.myitems-loading,
+.myitems-empty {
+    color: #fff;
+    text-align: center;
+}
+.myitems-grid {
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(6, 120px);
+    gap: 18px;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 0;
+}
+.myitems-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #232323;
+    border-radius: 8px;
+    padding: 10px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    border: 2px solid #444;
+    transition: transform 0.1s;
+    min-height: 170px;
+}
+.myitems-card-icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 8px;
+    image-rendering: pixelated;
+    pointer-events: none;
+    user-select: none;
+    background: #111;
+    border-radius: 8px;
+}
+.myitems-card-name {
+    font-weight: 700;
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 2px;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.myitems-card-price {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 2px;
+    text-align: center;
+}
+.myitems-card-credit {
+    width: 18px;
+    height: 18px;
+    position: relative;
+    margin-left: 4px;
+    top: 4px;
+}
+.myitems-card-editbtn {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: #3cbf7f;
+    color: #222;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.myitems-card-empty {
+    min-height: 170px;
+}
+.myitems-tooltip {
+    position: fixed;
+    background: #222;
+    color: #fff;
+    border: 1px solid #888;
+    border-radius: 6px;
+    padding: 10px 16px;
+    z-index: 1000;
+    pointer-events: none;
+    min-width: 200px;
+    max-width: 320px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    font-size: 15px;
+    white-space: pre-line;
+}
+.myitems-tooltip-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.myitems-tooltip-desc {
+    color: #bcbcbc;
+}
+.myitems-tooltip-price {
+    margin-top: 8px;
+    color: #ffd700;
+}
+.myitems-tooltip-store {
+    color: #bcbcbc;
+    margin-left: 8px;
+}
+.myitems-modal-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.myitems-modal-form {
+    background: #232323;
+    border: 1px solid #888;
+    border-radius: 8px;
+    padding: 32px;
+    min-width: 340px;
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.myitems-modal-title {
+    margin-bottom: 12px;
+}
+.myitems-label {
+    color: #fff;
+    margin-bottom: 6px;
+}
+.myitems-input {
+    margin-bottom: 6px;
+    width: 100%;
+}
+.myitems-checkbox {
+    margin-right: 6px;
+}
+.myitems-error {
+    color: red;
+    margin-bottom: 6px;
+}
+.myitems-modal-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+.myitems-btn-save {
+    background: #3cbf7f;
+}
+.myitems-btn-cancel {
+}

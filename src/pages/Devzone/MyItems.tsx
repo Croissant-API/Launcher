@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../../styles/GameForm.css';
+import '../../styles/MyItems.css';
 import { endpoint, url } from '../../config/config';
 import DevNavbar from '../../components/DevNavbar';
 
@@ -177,60 +178,21 @@ const MyItems = () => {
     return (
         <>
             <DevNavbar />
-            <div className="container" style={{
-                padding: "32px",
-                backgroundColor: "#3c3c3c",
-                borderRadius: "8px",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                margin: "40px auto", 
-                width: "90vw"
-            }}>
-                <h1 style={{ textAlign: "center", marginBottom: 24 }}>
-                    <span style={{
-                        color: "#fff",
-                        padding: "4px 12px",
-                        borderRadius: 6,
-                        fontWeight: 700,
-                        fontSize: 20,
-                        letterSpacing: 1
-                    }}>My Items</span>
+            <div className="myitems-container">
+                <h1 className="myitems-title">
+                    <span className="myitems-title-span">My Items</span>
                 </h1>
                 {loading ? (
-                    <div style={{ color: "#fff", textAlign: "center" }}>Loading...</div>
+                    <div className="myitems-loading">Loading...</div>
                 ) : (
                     <>
                         {items.length === 0 && (
-                            <div style={{ color: "#fff", textAlign: "center" }}>No items found.</div>
+                            <div className="myitems-empty">No items found.</div>
                         )}
-                        <div
-                            style={{
-                                margin: "0 auto",
-                                display: "grid",
-                                gridTemplateColumns: `repeat(6, 120px)`,
-                                gap: 18,
-                                justifyContent: "center",
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                            }}
-                        >
+                        <div className="myitems-grid">
                             {items.map(item => (
                                 <div key={`item-${item.itemId}`}
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        background: "#232323",
-                                        borderRadius: 8,
-                                        padding: 10,
-                                        position: "relative",
-                                        cursor: "pointer",
-                                        userSelect: "none",
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                                        border: "2px solid #444",
-                                        transition: "transform 0.1s",
-                                        minHeight: 170,
-                                    }}
+                                    className="myitems-card"
                                     tabIndex={0}
                                     draggable={false}
                                     onMouseEnter={e => {
@@ -247,48 +209,16 @@ const MyItems = () => {
                                     <img
                                         src={item.iconHash ? url + "/items-icons/" + item.iconHash : undefined}
                                         alt={item.name}
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            objectFit: "contain",
-                                            marginBottom: 8,
-                                            imageRendering: "pixelated",
-                                            pointerEvents: "none",
-                                            userSelect: "none",
-                                            background: "#111",
-                                            borderRadius: 8,
-                                        }}
+                                        className="myitems-card-icon"
                                         draggable={false}
                                     />
-                                    <div style={{
-                                        fontWeight: 700,
-                                        color: "#fff",
-                                        fontSize: 15,
-                                        marginBottom: 2,
-                                        textAlign: "center",
-                                        width: "100%",
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis"
-                                    }}>{item.name}</div>
-                                    <div style={{
-                                        color: "#ffd700",
-                                        fontWeight: 700,
-                                        fontSize: 15,
-                                        marginBottom: 2,
-                                        textAlign: "center"
-                                    }}>{item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/></div>
+                                    <div className="myitems-card-name">{item.name}</div>
+                                    <div className="myitems-card-price">
+                                        {item.price}
+                                        <img src="./credit.png" className="myitems-card-credit" />
+                                    </div>
                                     <button
-                                        style={{
-                                            marginTop: 8,
-                                            padding: "6px 12px",
-                                            background: "#3cbf7f",
-                                            color: "#222",
-                                            border: "none",
-                                            borderRadius: 6,
-                                            fontWeight: 600,
-                                            cursor: "pointer"
-                                        }}
+                                        className="myitems-card-editbtn"
                                         onClick={e => {
                                             e.stopPropagation();
                                             handleEdit(item);
@@ -299,78 +229,42 @@ const MyItems = () => {
                                 </div>
                             ))}
                             {Array.from({ length: Math.max(0, 6 * Math.ceil(items.length / 6) - items.length) }).map((_, idx) => (
-                                <div key={`empty-${idx}`} style={{ minHeight: 170 }} />
+                                <div key={`empty-${idx}`} className="myitems-card-empty" />
                             ))}
                         </div>
                         {tooltip && (
                             <div
+                                className="myitems-tooltip"
                                 style={{
-                                    position: "fixed",
                                     left: tooltip.x,
                                     top: tooltip.y,
-                                    background: "#222",
-                                    color: "#fff",
-                                    border: "1px solid #888",
-                                    borderRadius: 6,
-                                    padding: "10px 16px",
-                                    zIndex: 1000,
-                                    pointerEvents: "none",
-                                    minWidth: 200,
-                                    maxWidth: 320,
-                                    boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                    fontSize: 15,
-                                    whiteSpace: "pre-line",
                                 }}
                             >
-                                <div style={{ fontWeight: 700, marginBottom: 4 }}>{tooltip.item.name}</div>
-                                <div style={{ color: "#bcbcbc" }}>{tooltip.item.description}</div>
-                                <div style={{ marginTop: 8, color: "#ffd700" }}>
-                                    Price: {tooltip.item.price}<img src="./credit.png" style={{width: '18px', height: '18px', position: 'relative', marginLeft: '4px', top: '4px'}}/>
-                                    <span style={{ color: "#bcbcbc", marginLeft: 8 }}>
+                                <div className="myitems-tooltip-title">{tooltip.item.name}</div>
+                                <div className="myitems-tooltip-desc">{tooltip.item.description}</div>
+                                <div className="myitems-tooltip-price">
+                                    Price: {tooltip.item.price}
+                                    <img src="./credit.png" className="myitems-card-credit" />
+                                    <span className="myitems-tooltip-store">
                                         Show in Store: {tooltip.item.showInStore ? "Yes" : "No"}
                                     </span>
                                 </div>
                             </div>
                         )}
                         {editingId && (
-                            <div
-                                style={{
-                                    position: "fixed",
-                                    left: 0,
-                                    top: 0,
-                                    width: "100vw",
-                                    height: "100vh",
-                                    background: "rgba(0,0,0,0.5)",
-                                    zIndex: 3000,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
+                            <div className="myitems-modal-overlay">
                                 <form
                                     onSubmit={handleSubmit}
-                                    style={{
-                                        background: "#232323",
-                                        border: "1px solid #888",
-                                        borderRadius: 8,
-                                        padding: 32,
-                                        minWidth: 340,
-                                        color: "#fff",
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                        textAlign: "center",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 12,
-                                    }}
+                                    className="myitems-modal-form"
                                 >
-                                    <h2 style={{ marginBottom: 12 }}>Edit Item</h2>
+                                    <h2 className="myitems-modal-title">Edit Item</h2>
                                     <input
                                         type="text"
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
                                         placeholder="Name"
-                                        style={{ marginBottom: 6, width: "100%" }}
+                                        className="myitems-input"
                                         required
                                     />
                                     <textarea
@@ -379,7 +273,7 @@ const MyItems = () => {
                                         onChange={handleChange}
                                         placeholder="Description"
                                         rows={2}
-                                        style={{ marginBottom: 6, width: "100%" }}
+                                        className="myitems-input"
                                         required
                                     />
                                     <input
@@ -389,16 +283,16 @@ const MyItems = () => {
                                         onChange={handleChange}
                                         placeholder="Price"
                                         min={0}
-                                        style={{ marginBottom: 6, width: "100%" }}
+                                        className="myitems-input"
                                         required
                                     />
-                                    <label style={{ color: "#fff", marginBottom: 6 }}>
+                                    <label className="myitems-label">
                                         <input
                                             type="checkbox"
                                             name="showInStore"
                                             checked={formData.showInStore}
                                             onChange={handleChange}
-                                            style={{ marginRight: 6 }}
+                                            className="myitems-checkbox"
                                         />
                                         Show in Store
                                     </label>
@@ -406,14 +300,14 @@ const MyItems = () => {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleIconChange}
-                                        style={{ marginBottom: 6, width: "100%" }}
+                                        className="myitems-input"
                                     />
-                                    {errors.submit && <div style={{ color: "red", marginBottom: 6 }}>{errors.submit}</div>}
-                                    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                                        <button type="submit" disabled={submitting} style={{ background: "#3cbf7f" }}>
+                                    {errors.submit && <div className="myitems-error">{errors.submit}</div>}
+                                    <div className="myitems-modal-btns">
+                                        <button type="submit" disabled={submitting} className="myitems-btn-save">
                                             {submitting ? "Saving..." : "Save"}
                                         </button>
-                                        <button type="button" onClick={handleCancel} disabled={submitting}>
+                                        <button type="button" onClick={handleCancel} disabled={submitting} className="myitems-btn-cancel">
                                             Cancel
                                         </button>
                                     </div>

@@ -1,5 +1,6 @@
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import '../../styles/GameForm.css';
+import '../../styles/CreateGame.css';
 import { endpoint, url } from '../../config/config';
 import DevNavbar from '../../components/DevNavbar';
 
@@ -187,26 +188,9 @@ const GameForm = () => {
     return (
         <>
             <DevNavbar />
-            <div
-                className="container"
-                style={{
-                    padding: "32px",
-                    backgroundColor: "#3c3c3c",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                    maxWidth: 500,
-                    margin: "40px auto"
-                }}
-            >
-                <h1 style={{ textAlign: "center", marginBottom: 24 }}>
-                    <span style={{
-                        color: "#fff",
-                        padding: "4px 12px",
-                        borderRadius: 6,
-                        fontWeight: 700,
-                        fontSize: 20,
-                        letterSpacing: 1
-                    }}>Submit a Game</span>
+            <div className="creategame-container">
+                <h1 className="creategame-title">
+                    <span>Submit a Game</span>
                 </h1>
                 <form onSubmit={handleSubmit} className="game-form">
                     <div className="form-row">
@@ -236,7 +220,6 @@ const GameForm = () => {
                             required
                             rows={4}
                             className="dark-input"
-                            style={{ resize: "vertical" }}
                         />
                     </div>
                     {errors.description && <span className="error">{errors.description}</span>}
@@ -276,16 +259,7 @@ const GameForm = () => {
                         <label htmlFor="image">
                             Game Icon <span className="required">*</span>
                         </label>
-                        <label htmlFor="image" className="custom-file-label" style={{
-                            display: "inline-block",
-                            padding: "8px 16px",
-                            background: "#222",
-                            color: "#fff",
-                            borderRadius: 6,
-                            cursor: "pointer",
-                            marginBottom: 8,
-                            border: "1px solid #444"
-                        }}>
+                        <label htmlFor="image" className="custom-file-label creategame-file-label">
                             {iconFile || formData.iconHash ? "Change Icon" : "Choose Icon"}
                             <input
                                 id="image"
@@ -299,7 +273,7 @@ const GameForm = () => {
                             />
                         </label>
                         {(iconFile || formData.iconHash) && (
-                            <span style={{ color: "#3cbf7f", marginLeft: 8 }}>Ready!</span>
+                            <span className="creategame-ready">Ready!</span>
                         )}
                     </div>
                     {errors.iconHash && <span className="error">{errors.iconHash}</span>}
@@ -307,16 +281,7 @@ const GameForm = () => {
                         <label htmlFor="banner">
                             Banner <span className="required">*</span>
                         </label>
-                        <label htmlFor="banner" className="custom-file-label" style={{
-                            display: "inline-block",
-                            padding: "8px 16px",
-                            background: "#222",
-                            color: "#fff",
-                            borderRadius: 6,
-                            cursor: "pointer",
-                            marginBottom: 8,
-                            border: "1px solid #444"
-                        }}>
+                        <label htmlFor="banner" className="custom-file-label creategame-file-label">
                             {bannerFile || formData.bannerHash ? "Change Banner" : "Choose Banner"}
                             <input
                                 id="banner"
@@ -330,19 +295,19 @@ const GameForm = () => {
                             />
                         </label>
                         {(bannerFile || formData.bannerHash) && (
-                            <span style={{ color: "#3cbf7f", marginLeft: 8 }}>Ready!</span>
+                            <span className="creategame-ready">Ready!</span>
                         )}
                     </div>
                     {errors.bannerHash && <span className="error">{errors.bannerHash}</span>}
                     <div className="form-row">
-                        <label htmlFor="showInStore" style={{ display: "flex", alignItems: "center" }}>
+                        <label htmlFor="showInStore" className="creategame-checkbox-label">
                             <input
                                 id="showInStore"
                                 type="checkbox"
                                 name="showInStore"
                                 checked={formData.showInStore}
                                 onChange={handleChange}
-                                style={{ marginRight: 8 }}
+                                className="creategame-checkbox"
                             />
                             Show in Store
                         </label>
@@ -425,21 +390,21 @@ const GameForm = () => {
                         />
                     </div>
                     <div className="form-row">
-                        <label htmlFor="multiplayer" style={{ display: "flex", alignItems: "center" }}>
+                        <label htmlFor="multiplayer" className="creategame-checkbox-label">
                             <input
                                 id="multiplayer"
                                 type="checkbox"
                                 name="multiplayer"
                                 checked={formData.multiplayer}
                                 onChange={handleChange}
-                                style={{ marginRight: 8 }}
+                                className="creategame-checkbox"
                             />
                             Multiplayer
                         </label>
                     </div>
                     {errors.submit && <span className="error">{errors.submit}</span>}
-                    {success && <span style={{ color: "#3cbf7f", fontWeight: 600 }}>{success}</span>}
-                    <button type="submit" style={{ marginTop: 10 }} disabled={loading}>
+                    {success && <span className="creategame-success">{success}</span>}
+                    <button type="submit" className="creategame-submit-btn" disabled={loading}>
                         {loading ? "Submitting..." : "Submit"}
                     </button>
                 </form>

@@ -1,0 +1,43 @@
+.navbar-fixed {
+    position: fixed;
+    z-index: 1;
+    width: 100%;
+    background-color: white;
+    top: 2rem;
+}
+.navbar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.navbar-links-group {
+    /* Ajoutez des styles personnalisés si besoin */
+}
+.navbar-user-group {
+    display: flex;
+    align-items: center;
+}
+.navbar-credits {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+    gap: 4px;
+}
+.navbar-credit-img {
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+}
+.navbar-balance {
+    display: flex;
+    flex-direction: row;
+}
+.navbar-avatar {
+    width: 32px;
+    height: 32px;
+    margin-right: 16px;
+    border-radius: 50%;
+}
+.navbar-logout-btn {
+    color: red;
+}

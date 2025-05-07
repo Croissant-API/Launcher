@@ -223,17 +223,7 @@ const Library: React.FC = () => {
                     placeholder="Search games..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    style={{
-                        width: "70%",
-                        margin: "8px auto 16px auto",
-                        display: "block",
-                        padding: "6px 10px",
-                        borderRadius: 6,
-                        border: "1px solid #bcbcbc",
-                        background: "#23262e",
-                        color: "#fff",
-                        fontSize: 15,
-                    }}
+                    className="library-search-input"
                 />
                 {filteredGames.length === 0 ? (
                     <div className="sidebar-empty">No games found.</div>
@@ -282,8 +272,8 @@ const Library: React.FC = () => {
                         <div className="main-details-content">
                             <h2>{selected.name}</h2>
                             <p style={{ color: "#bcbcbc" }}>{selected.description}</p>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, minWidth: "800px", width: "800px", gap: "400px" }}>
-                                <div style={{ marginTop: 24, display: "flex", gap: 8, flexDirection: "column" }}>
+                            <div className="library-details-row">
+                                <div className="library-btn-col">
                                     {selected.state === "not_installed" && (
                                         <button className="library-play-btn can-install" onClick={handleInstall}>Install</button>
                                     )}
@@ -291,12 +281,12 @@ const Library: React.FC = () => {
                                         <button className="library-play-btn can-update" onClick={handleUpdate}>Update</button>
                                     )}
                                     {selected.state === "installed" && (
-                                        <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+                                        <div className="library-btn-col">
                                             <button className="library-play-btn can-play" onClick={handlePlay} disabled={isPlaying}>
                                                 {isPlaying ? "In Game" : "Play"}
                                             </button>
-                                            <button className="library-play-btn can-delete" onClick={handleDelete} disabled={isPlaying}
-                                                style={{ background: "#c0392b", color: "#fff" }}>Delete
+                                            <button className="library-play-btn can-delete" onClick={handleDelete} disabled={isPlaying}>
+                                                Delete
                                             </button>
                                         </div>
                                     )}

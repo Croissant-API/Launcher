@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { endpoint, url } from "../config/config";
 import fetchMe from "../utils/fetchMe";
+import "../styles/Inventory.css";
 
 export interface Inventory {
     user_id: string;
@@ -40,7 +41,7 @@ interface State {
         amount?: number;
     } | null;
     selectedItem?: Item | null;
-    ownerUser?: any | null; // Add this line
+    ownerUser?: any | null;
 }
 
 export default class extends Component<{}, State> {
@@ -253,79 +254,48 @@ export default class extends Component<{}, State> {
 
         if (selectedItem) {
             return (
-                <div className="container" style={{ maxWidth: 500, margin: "40px auto", padding: 32, background: "#232323", borderRadius: 12, color: "#fff", border: "2px solid #bcbcbc" }}>
+                <div className="inventory-details-container">
                     <button
                         onClick={this.handleBackToInventory}
-                        style={{
-                            marginBottom: 24,
-                            padding: "8px 20px",
-                            background: "#bcbcbc",
-                            color: "#232323",
-                            border: "none",
-                            borderRadius: 6,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            fontSize: 16,
-                        }}
+                        className="inventory-back-btn"
                     >
                         ← Back to Inventory
                     </button>
-                    <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+                    <div className="inventory-details-main">
                         <img
                             src={url + "/items-icons/" + selectedItem.iconHash}
                             alt={selectedItem.name}
-                            style={{
-                                width: 96,
-                                height: 96,
-                                objectFit: "contain",
-                                imageRendering: "pixelated",
-                                background: "#1a1a1a",
-                                borderRadius: 8,
-                                border: "2px solid #888",
-                            }}
+                            className="inventory-details-img"
                         />
                         <div>
-                            <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{selectedItem.name}</div>
-                            <div style={{ color: "#bcbcbc", marginBottom: 16 }}>{selectedItem.description}</div>
-                            <div style={{ fontWeight: 600, fontSize: 18 }}>Quantity: x{selectedItem.amount}</div>
+                            <div className="inventory-details-name">{selectedItem.name}</div>
+                            <div className="inventory-details-desc">{selectedItem.description}</div>
+                            <div className="inventory-details-qty">Quantity: x{selectedItem.amount}</div>
                             {selectedItem.price !== undefined && (
-                                <div style={{ color: "#bcbcbc", marginTop: 8 }}>Price: {selectedItem.price} <img src="./credit.png" style={{
-                                    width: "18px",
-                                    position: "relative",
-                                    top: "4px",
-                                    marginLeft: "4px"
-                                }}/></div>
+                                <div className="inventory-details-price">
+                                    Price: {selectedItem.price} <img src="./credit.png" className="inventory-credit-icon"/>
+                                </div>
                             )}
                             {selectedItem.owner && this.state.ownerUser && (
-                                <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                                <div className="inventory-details-creator">
                                     Creator:{" "}
                                     <Link
                                         to={`/profile?user=${selectedItem.owner}`}
-                                        style={{
-                                            color: "white",
-                                            textDecoration: "underline",
-                                            cursor: "pointer",
-                                            fontWeight: 600,
-                                        }}
+                                        className="inventory-details-creator-link"
                                     >
-                                        <img style={{
-                                            width: 24,
-                                            position: "relative",
-                                            borderRadius: "50%",
-                                            marginRight: 8,
-                                            top: 6,
-                                        }} src={url + "/avatar/" + selectedItem.owner }/>
+                                        <img className="inventory-details-creator-avatar"
+                                            src={url + "/avatar/" + selectedItem.owner }/>
                                         {this.state.ownerUser.global_name || this.state.ownerUser.username}
                                     </Link>
                                 </div>
                             )}
                             {selectedItem.showInStore !== undefined && (
-                                <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                                <div className="inventory-details-store">
                                     Show in Store: {selectedItem.showInStore ? "Yes" : "No"}
                                 </div>
                             )}
                             {selectedItem.deleted !== undefined && (
-                                <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                                <div className="inventory-details-deleted">
                                     Deleted: {selectedItem.deleted ? "Yes" : "No"}
                                 </div>
                             )}
@@ -336,41 +306,22 @@ export default class extends Component<{}, State> {
         }
 
         return (
-            <div className="container" style={{ maxWidth: 900, margin: "0 auto", position: "relative" }}>
+            <div className="inventory-root">
                 <h1>Inventory</h1>
                 {loading && <p>Loading...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
+                {error && <p className="inventory-error">{error}</p>}
                 {!loading && !error && (
                     <div
+                        className="inventory-grid"
                         style={{
-                            width: "100%",
-                            maxWidth: 900,
-                            minHeight: minRows * 20,
-                            maxHeight: minRows * 74,
-                            overflowY: rows > minRows ? "auto" : "hidden",
-                            display: "grid",
                             gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                            gap: 8,
-                            padding: 16,
-                            background: "#222",
-                            border: "4px solid #bcbcbc",
-                            borderRadius: 8,
+                            overflowY: rows > minRows ? "auto" : "hidden",
                         }}
                     >
                         {items.map((item) => (
                             <div
                                 key={item.itemId}
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    background: "#1a1a1a",
-                                    borderRadius: 4,
-                                    padding: 8,
-                                    position: "relative",
-                                    cursor: "pointer",
-                                    userSelect: "none",
-                                }}
+                                className="inventory-item"
                                 tabIndex={0}
                                 draggable={false}
                                 onMouseEnter={(e) => this.handleMouseEnter(e, item)}
@@ -382,33 +333,10 @@ export default class extends Component<{}, State> {
                                     <img
                                         src={url + "/items-icons/" + item.iconHash}
                                         alt={item.name}
-                                        style={{
-                                            width: 48,
-                                            height: 48,
-                                            objectFit: "contain",
-                                            marginBottom: 4,
-                                            imageRendering: "pixelated",
-                                            pointerEvents: "none",
-                                            userSelect: "none",
-                                        }}
+                                        className="inventory-item-img"
                                         draggable={false}
                                     />
-                                    <div
-                                        style={{
-                                            position: "absolute",
-                                            bottom: 6,
-                                            right: 8,
-                                            background: "rgba(0,0,0,0.7)",
-                                            borderRadius: 6,
-                                            padding: "2px 6px",
-                                            fontSize: 13,
-                                            fontWeight: 700,
-                                            color: "#fff",
-                                            boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                                            pointerEvents: "none",
-                                            userSelect: "none",
-                                        }}
-                                    >
+                                    <div className="inventory-item-qty">
                                         x{item.amount}
                                     </div>
                                 </>
@@ -417,11 +345,7 @@ export default class extends Component<{}, State> {
                         {Array.from({ length: emptyCells }).map((_, idx) => (
                             <div
                                 key={`empty-${idx}`}
-                                style={{
-                                    background: "#1a1a1a",
-                                    borderRadius: 4,
-                                    minHeight: 64,
-                                }}
+                                className="inventory-item-empty"
                                 draggable={false}
                             />
                         ))}
@@ -430,66 +354,34 @@ export default class extends Component<{}, State> {
 
                 {tooltip && (
                     <div
+                        className="inventory-tooltip"
                         style={{
-                            position: "fixed",
                             left: tooltip.x,
                             top: tooltip.y,
-                            background: "#222",
-                            color: "#fff",
-                            border: "1px solid #888",
-                            borderRadius: 6,
-                            padding: "10px 16px",
-                            zIndex: 1000,
-                            pointerEvents: "none",
-                            minWidth: 200,
-                            maxWidth: 320,
-                            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                            fontSize: 15,
-                            whiteSpace: "pre-line",
                         }}
                     >
-                        <div style={{ fontWeight: 700, marginBottom: 4 }}>{tooltip.item.name}</div>
-                        <div style={{ color: "#bcbcbc" }}>{tooltip.item.description}</div>
+                        <div className="inventory-tooltip-name">{tooltip.item.name}</div>
+                        <div className="inventory-tooltip-desc">{tooltip.item.description}</div>
                     </div>
                 )}
 
                 {contextMenu && (
                     <div
+                        className="inventory-context-menu"
                         style={{
-                            position: "fixed",
                             left: contextMenu.x,
                             top: contextMenu.y,
-                            background: "#232323",
-                            border: "1px solid #888",
-                            borderRadius: 6,
-                            zIndex: 2000,
-                            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                            minWidth: 120,
-                            padding: "4px 0",
                         }}
                         onClick={e => e.stopPropagation()}
                     >
                         <div
-                            style={{
-                                padding: "8px 16px",
-                                cursor: "pointer",
-                                color: "#fff",
-                                fontWeight: 500,
-                                borderBottom: "1px solid #444",
-                                userSelect: "none",
-                            }}
+                            className="inventory-context-sell"
                             onClick={() => this.handleSell(contextMenu.item)}
                         >
                             Sell
                         </div>
                         <div
-                            style={{
-                                padding: "8px 16px",
-                                cursor: "pointer",
-                                color: "#ff4444",
-                                fontWeight: 700,
-                                userSelect: "none",
-                            }}
+                            className="inventory-context-drop"
                             onClick={() => this.handleDrop(contextMenu.item)}
                         >
                             Drop
@@ -498,81 +390,30 @@ export default class extends Component<{}, State> {
                 )}
 
                 {prompt && (
-                    <div
-                        style={{
-                            position: "fixed",
-                            left: 0,
-                            top: 0,
-                            width: "100vw",
-                            height: "100vh",
-                            background: "rgba(0,0,0,0.5)",
-                            zIndex: 3000,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <div
-                            style={{
-                                background: "#232323",
-                                border: "1px solid #888",
-                                borderRadius: 8,
-                                padding: 32,
-                                minWidth: 300,
-                                color: "#fff",
-                                boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                                textAlign: "center",
-                            }}
-                        >
-                            <div style={{ marginBottom: 24, fontSize: 18 }}>{prompt.message}</div>
+                    <div className="inventory-prompt-overlay">
+                        <div className="inventory-prompt">
+                            <div className="inventory-prompt-message">{prompt.message}</div>
                             {prompt.maxAmount && (
-                                <div style={{ marginBottom: 24 }}>
+                                <div className="inventory-prompt-amount">
                                     <input
                                         type="number"
                                         min={1}
                                         max={prompt.maxAmount}
                                         value={prompt.amount}
                                         onChange={this.handlePromptAmountChange}
-                                        style={{
-                                            width: 80,
-                                            fontSize: 16,
-                                            padding: "4px 8px",
-                                            borderRadius: 4,
-                                            border: "1px solid #888",
-                                            marginRight: 8,
-                                            textAlign: "center",
-                                        }}
+                                        className="inventory-prompt-amount-input"
                                     />
-                                    <span style={{ color: "#bcbcbc" }}>/ {prompt.maxAmount}</span>
+                                    <span className="inventory-prompt-amount-max">/ {prompt.maxAmount}</span>
                                 </div>
                             )}
                             <button
-                                style={{
-                                    marginRight: 16,
-                                    padding: "8px 24px",
-                                    background: "#4caf50",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    fontSize: 16,
-                                }}
+                                className="inventory-prompt-yes-btn"
                                 onClick={() => this.handlePromptResult(true)}
                             >
                                 Yes
                             </button>
                             <button
-                                style={{
-                                    padding: "8px 24px",
-                                    background: "#f44336",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    fontSize: 16,
-                                }}
+                                className="inventory-prompt-no-btn"
                                 onClick={() => this.handlePromptResult(false)}
                             >
                                 No

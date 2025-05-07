@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { endpoint, url } from "../config/config";
 import { Link } from "react-router-dom";
+import "../styles/Profile.css";
 
 interface DiscordUser {
     id: string;
@@ -130,74 +131,46 @@ export default function Profile({ user }: ProfileProps) {
     // Show item details if selected
     if (selectedItem) {
         return (
-            <div className="container" style={{ maxWidth: 500, margin: "40px auto", padding: 32, background: "#232323", borderRadius: 12, color: "#fff", border: "2px solid #bcbcbc" }}>
+            <div className="profile-details-container">
                 <button
                     onClick={handleBackToInventory}
-                    style={{
-                        marginBottom: 24,
-                        padding: "8px 20px",
-                        background: "#bcbcbc",
-                        color: "#232323",
-                        border: "none",
-                        borderRadius: 6,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        fontSize: 16,
-                    }}
+                    className="profile-back-btn"
                 >
                     ← Back to Inventory
                 </button>
-                <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+                <div className="profile-details-main">
                     <img
                         src={url + "/items-icons/" + selectedItem.iconHash}
                         alt={selectedItem.name}
-                        style={{
-                            width: 96,
-                            height: 96,
-                            objectFit: "contain",
-                            imageRendering: "pixelated",
-                            background: "#1a1a1a",
-                            borderRadius: 8,
-                            border: "2px solid #888",
-                        }}
+                        className="profile-details-img"
                     />
                     <div>
-                        <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{selectedItem.name}</div>
-                        <div style={{ color: "#bcbcbc", marginBottom: 16 }}>{selectedItem.description}</div>
-                        <div style={{ fontWeight: 600, fontSize: 18 }}>Quantity: x{selectedItem.amount}</div>
+                        <div className="profile-details-name">{selectedItem.name}</div>
+                        <div className="profile-details-desc">{selectedItem.description}</div>
+                        <div className="profile-details-qty">Quantity: x{selectedItem.amount}</div>
                         {selectedItem.price !== undefined && (
-                            <div style={{ color: "#bcbcbc", marginTop: 8 }}>Price: {selectedItem.price}</div>
+                            <div className="profile-details-price">Price: {selectedItem.price}</div>
                         )}
                         {selectedItem.owner && ownerUser && (
-                            <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                            <div className="profile-details-creator">
                                 Creator:{" "}
                                 <Link
                                     to={`/profile?user=${selectedItem.owner}`}
-                                    style={{
-                                        color: "white",
-                                        textDecoration: "underline",
-                                        cursor: "pointer",
-                                        fontWeight: 600,
-                                    }}
+                                    className="profile-details-creator-link"
                                 >
-                                    <img style={{
-                                        width: 24,
-                                        position: "relative",
-                                        borderRadius: "50%",
-                                        marginRight: 8,
-                                        top: 6,
-                                    }} src={url + "/avatar/" + selectedItem.owner }/>
+                                    <img className="profile-details-creator-avatar"
+                                        src={url + "/avatar/" + selectedItem.owner }/>
                                     {ownerUser.global_name || ownerUser.username}
                                 </Link>
                             </div>
                         )}
                         {selectedItem.showInStore !== undefined && (
-                            <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                            <div className="profile-details-store">
                                 Show in Store: {selectedItem.showInStore ? "Yes" : "No"}
                             </div>
                         )}
                         {selectedItem.deleted !== undefined && (
-                            <div style={{ color: "#bcbcbc", marginTop: 8 }}>
+                            <div className="profile-details-deleted">
                                 Deleted: {selectedItem.deleted ? "Yes" : "No"}
                             </div>
                         )}
@@ -208,8 +181,8 @@ export default function Profile({ user }: ProfileProps) {
     }
 
     return (
-        <div className="container" style={{ maxWidth: 900, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 32 }}>
+        <div className="profile-root">
+            <div className="profile-header">
                 <img
                     src={
                         profile.avatar
@@ -217,61 +190,28 @@ export default function Profile({ user }: ProfileProps) {
                             : "https://cdn.discordapp.com/embed/avatars/0.png"
                     }
                     alt={profile.username}
-                    style={{
-                        width: 96,
-                        height: 96,
-                        borderRadius: "50%",
-                        border: "3px solid #bcbcbc",
-                        background: "#232323",
-                        objectFit: "cover",
-                    }}
+                    className="profile-avatar"
                 />
                 <div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>
+                    <div className="profile-name">
                         {profile.global_name || profile.username}
                     </div>
                 </div>
             </div>
-            <h2 style={{ marginBottom: 12 }}>Inventory</h2>
+            <h2 className="profile-inventory-title">Inventory</h2>
             {inventoryLoading ? (
                 <p>Loading inventory...</p>
             ) : (
-                <div
-                    style={{
-                        width: "100%",
-                        maxWidth: 900,
-                        minHeight: 6 * 20,
-                        maxHeight: 6 * 74,
-                        overflowY: items.length > 48 ? "auto" : "hidden",
-                        display: "grid",
-                        gridTemplateColumns: `repeat(8, 1fr)`,
-                        gap: 8,
-                        padding: 16,
-                        background: "#222",
-                        border: "4px solid #bcbcbc",
-                        borderRadius: 8,
-                    }}
-                >
+                <div className="profile-inventory-grid">
                     {items.length === 0 && (
-                        <div style={{ gridColumn: "span 8", color: "#bcbcbc", textAlign: "center" }}>
+                        <div className="profile-inventory-empty">
                             No items in inventory.
                         </div>
                     )}
                     {items.map(item => (
                         <div
                             key={item.itemId}
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                background: "#1a1a1a",
-                                borderRadius: 4,
-                                padding: 8,
-                                position: "relative",
-                                minHeight: 64,
-                                userSelect: "none",
-                                cursor: "pointer",
-                            }}
+                            className="profile-inventory-item"
                             onMouseEnter={e => handleMouseEnter(e, item)}
                             onMouseLeave={handleMouseLeave}
                             onClick={() => handleItemClick(item)}
@@ -279,33 +219,10 @@ export default function Profile({ user }: ProfileProps) {
                             <img
                                 src={url + "/items-icons/" + item.iconHash}
                                 alt={item.name}
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    objectFit: "contain",
-                                    marginBottom: 4,
-                                    imageRendering: "pixelated",
-                                    pointerEvents: "none",
-                                    userSelect: "none",
-                                }}
+                                className="profile-inventory-img"
                                 draggable={false}
                             />
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    bottom: 6,
-                                    right: 8,
-                                    background: "rgba(0,0,0,0.7)",
-                                    borderRadius: 6,
-                                    padding: "2px 6px",
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: "#fff",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                                    pointerEvents: "none",
-                                    userSelect: "none",
-                                }}
-                            >
+                            <div className="profile-inventory-qty">
                                 x{item.amount}
                             </div>
                         </div>
@@ -314,11 +231,7 @@ export default function Profile({ user }: ProfileProps) {
                     {Array.from({ length: Math.max(0, 48 - items.length) }).map((_, idx) => (
                         <div
                             key={`empty-${idx}`}
-                            style={{
-                                background: "#1a1a1a",
-                                borderRadius: 4,
-                                minHeight: 64,
-                            }}
+                            className="profile-inventory-empty-cell"
                             draggable={false}
                         />
                     ))}
@@ -327,26 +240,14 @@ export default function Profile({ user }: ProfileProps) {
             {/* Tooltip */}
             {tooltip && (
                 <div
+                    className="profile-tooltip"
                     style={{
-                        position: "fixed",
                         left: tooltip.x,
                         top: tooltip.y,
-                        background: "#222",
-                        color: "#fff",
-                        border: "1px solid #888",
-                        borderRadius: 6,
-                        padding: "10px 16px",
-                        zIndex: 1000,
-                        pointerEvents: "none",
-                        minWidth: 200,
-                        maxWidth: 320,
-                        boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                        fontSize: 15,
-                        whiteSpace: "pre-line",
                     }}
                 >
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{tooltip.item.name}</div>
-                    <div style={{ color: "#bcbcbc" }}>{tooltip.item.description}</div>
+                    <div className="profile-tooltip-name">{tooltip.item.name}</div>
+                    <div className="profile-tooltip-desc">{tooltip.item.description}</div>
                 </div>
             )}
         </div>

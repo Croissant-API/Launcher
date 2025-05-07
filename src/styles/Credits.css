@@ -1,0 +1,57 @@
+.credits-container {
+    max-width: 600px;
+    margin: 48px auto;
+    padding: 36px;
+    background: linear-gradient(135deg, #23232a 0%, #18181c 100%);
+    border-radius: 18px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.22);
+}
+.credits-title {
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 800;
+    font-size: 38px;
+    color: #fff;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.credits-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+.credit-tier {
+    background: rgba(35,35,42,0.98);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.16);
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    border: 2px solid #282834;
+    margin-bottom: 12px;
+}
+.credit-tier:focus,
+.credit-tier:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+    outline: none;
+}
+.credit-tier-img {
+    height: 64px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 2px 8px #0006);
+}
+.credit-tier-credits {
+    font-weight: 700;
+    font-size: 22px;
+    margin-bottom: 6px;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+.credit-tier-price {
+    color: #ffd700;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
