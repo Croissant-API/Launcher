@@ -32,7 +32,7 @@ export default class extends Component {
       <BrowserRouter>
         <div>
           <Navbar />
-          <main style={{ position: "fixed", left: 0, right: 0, top: "7rem", bottom: 0, overflow: "hidden" }}>
+          <main style={{ position: "fixed", left: 0, right: 0, top: "7rem", bottom: 0 }}>
             {/* <div style={{ width: "100%", height: "100%", overflow: "auto" }}> */}
             <Routes>
               <Route path="/launcher/" element={<Library />} />
