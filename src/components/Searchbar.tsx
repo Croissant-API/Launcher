@@ -13,9 +13,9 @@ export default function Searchbar() {
         if (e.key === "Enter") {
             const query = encodeURIComponent(e.currentTarget.value);
             if (query) {
-                navigate("/search?query=" + query);
+                navigate("/launcher/search?query=" + query);
             } else {
-                navigate("/");
+                navigate("/launcher");
             }
         }
     };

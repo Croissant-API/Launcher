@@ -185,7 +185,7 @@ export default function LobbyPage() {
                                                     <li key={user.id}>
                                                         <button
                                                             className="lobby-user-btn"
-                                                            onClick={() => navigate("/profile?user=" + user.id)}
+                                                            onClick={() => navigate("/launcher/profile?user=" + user.id)}
                                                         >
                                                             <img className="lobby-user-avatar"
                                                                 src={url + "/avatar/" + user.id} />
