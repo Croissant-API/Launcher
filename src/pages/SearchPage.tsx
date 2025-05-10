@@ -59,7 +59,7 @@ export default function SearchPage() {
                     </div>
                 )}
                 {users.map((user, idx) => (
-                    <Link to={`/profile?user=${user.id}`} style={{ textDecoration: "none" }}>
+                    <Link to={`/launcher/profile?user=${user.id}`} style={{ textDecoration: "none" }}>
                         <div
                             key={user.id || idx}
                             className="search-user-card"
