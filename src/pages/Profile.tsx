@@ -250,7 +250,7 @@ function ProfileShop({ ownerId, onBuySuccess }: { ownerId: string; onBuySuccess:
                                         <div className="shop-prompt-item-owner">
                                             Creator:{" "}
                                             <Link
-                                                to={`/profile?user=${(prompt.item as any).owner}`}
+                                                to={`/launcher/profile?user=${(prompt.item as any).owner}`}
                                                 className="shop-prompt-owner-link"
                                             >
                                                 <img
