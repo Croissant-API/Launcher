@@ -11,8 +11,12 @@ const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
 export function setupWebSocket() {
     const wss = new WebSocketServer({ port: 8081 });
+    console.log("WebSocket server started on ws://localhost:8081");
 
     wss.on("connection", (ws) => {
+        // Indique au client que le serveur est prêt
+        ws.send(JSON.stringify({ action: "serverReady" }));
+
         ws.on("message", async (msg) => {
             try {
                 const data = JSON.parse(msg);
