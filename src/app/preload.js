@@ -1,12 +1,17 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electron', {
-  window: {
-    minimize: () => ipcRenderer.send('window-minimize'),
-    maximize: () => ipcRenderer.send('window-maximize'),
-    close: () => ipcRenderer.send('window-close'),
-    openLogin: () => ipcRenderer.send('open-login'),
-  }
+    window: {
+        minimize: () => ipcRenderer.send('window-minimize'),
+        maximize: () => ipcRenderer.send('window-maximize'),
+        close: () => ipcRenderer.send('window-close'),
+        openDiscordLogin: () => ipcRenderer.send('open-discord-login'),
+        openGoogleLogin: () => ipcRenderer.send('open-google-login'),
+        openEmailLogin: () => ipcRenderer.send('open-email-login'),
+        onSetToken: (callback) => {
+            ipcRenderer.on('set-token', (event, token) => callback(token));
+        }
+    }
 });
 
 ipcRenderer.on('set-token', (event, token) => {

@@ -57,7 +57,19 @@ export function startApp() {
       if (win) win.close();
     });
 
-    ipcMain.on('open-login', (event) => {
+    // ipcMain.on('open-login', (event) => {
+    //   open("https://croissant-api.fr/login")
+    // });
+
+    ipcMain.on('open-discord-login', (event) => {
+      open("https://croissant-api.fr/auth/discord")
+    });
+
+    ipcMain.on('open-google-login', (event) => {
+      open("https://croissant-api.fr/auth/google")
+    });
+
+    ipcMain.on('open-email-login', (event) => {
       open("https://croissant-api.fr/login")
     });
 
