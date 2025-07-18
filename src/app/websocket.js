@@ -2,7 +2,7 @@ import { WebSocketServer } from "ws";
 import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
-import { loginToken, joinLobby } from './mainWindow.js';
+import { loginToken, joinLobby } from './app.js';
 import { checkInstallationStatus } from './games.js';
 import { spawn } from 'child_process';
 import { BrowserWindow } from 'electron'; // Add this import at the top

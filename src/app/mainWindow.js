@@ -1,12 +1,20 @@
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const devEnv = false;
+export const devEnv = true;
 const PORT_TO_SERVE = devEnv ? "http://localhost:4536/launcher" : "https://croissant-api.fr/launcher/";
+
+// Prevent second instance
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+} else {
+    
+}
 
 let win;
 
@@ -43,24 +51,4 @@ export function createMainWindow() {
     });
 
     return win;
-}
-
-export function loginToken(token) {
-    win.webContents.send("set-token", token.toString());
-    win.show();
-    win.focus();
-
-    // Bring window to foreground
-    win.setAlwaysOnTop(true, 'screen');
-    setTimeout(() => win.setAlwaysOnTop(false), 1000);
-}
-
-export function joinLobby(lobbyId) {
-    win.webContents.send("join-lobby", lobbyId);
-    win.show();
-    win.focus();
-
-    // Bring window to foreground
-    win.setAlwaysOnTop(true, 'screen');
-    setTimeout(() => win.setAlwaysOnTop(false), 1000);
 }
