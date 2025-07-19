@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch'; // Ensure to install node-fetch if not already
 import { fileURLToPath } from 'url';
