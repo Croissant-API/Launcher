@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('electron', {
 });
 
 ipcRenderer.on('set-token', (event, token) => {
-    localStorage["token"] = token;
+    document.cookie = `token=${token}; path=/;`;
     location.reload();
     return;
 })
@@ -25,7 +25,7 @@ ipcRenderer.on('join-lobby', (event, lobbyId) => {
         method: "POST",
         headers: {
             accept: "application/json",
-            Authorization: "Bearer " + localStorage["token"],
+            Authorization: "Bearer " + document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1],
             "Content-Type": "application/json",
         }
     }).then((response) => {
