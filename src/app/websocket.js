@@ -24,9 +24,26 @@ export function setupWebSocket() {
                     const { gameId, downloadUrl } = data;
                     const dest = path.join(gamesDir, gameId);
                     if (!fs.existsSync(dest)) {
-                        // Git clone
-                        await simpleGit().clone(downloadUrl, dest);
-                        ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
+                        if(downloadUrl.endsWith('.zip')) {
+                            // Download and extract ZIP
+                            const response = await fetch(downloadUrl);
+                            if (!response.ok) {
+                                ws.send(JSON.stringify({ action: "error", message: "Failed to download game" }));
+                                return;
+                            }
+                            const buffer = await response.buffer();
+                            fs.mkdirSync(dest, { recursive: true });
+                            const zip = require('adm-zip');
+                            const zipFilePath = path.join(dest, 'game.zip');
+                            fs.writeFileSync(zipFilePath, buffer);
+                            const zipInstance = new zip(zipFilePath);
+                            zipInstance.extractAllTo(dest, true);
+                            fs.unlinkSync(zipFilePath); // Remove the zip file after extraction
+                        } else {
+                            // Git clone
+                            await simpleGit().clone(downloadUrl, dest);
+                            ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
+                        }
                     } else {
                         ws.send(JSON.stringify({ action: "alreadyInstalled", gameId }));
                     }
@@ -35,11 +52,6 @@ export function setupWebSocket() {
                     const { gameId, playerId, verificationKey } = data;
                     // Here, launch the game (e.g., spawn process)
                     ws.send(JSON.stringify({ action: "playing", gameId }));
-
-                    // Trigger closeGame after 5 seconds
-                    // setTimeout(() => {
-                    //     ws.send(JSON.stringify({ action: "closeGame", gameId }));
-                    // }, 5000);
 
                     const gamePath = path.join(gamesDir, gameId);
                     let launchFile = null;
@@ -121,7 +133,7 @@ export function setupWebSocket() {
                     // Here, close the game process if needed
                     ws.send(JSON.stringify({ action: "closed", gameId }));
                 }
-                if(data.action === "checkInstallationStatus") {
+                if (data.action === "checkInstallationStatus") {
                     const { gameId } = data;
                     // Use the async checkInstallationStatus
                     const status = await checkInstallationStatus(gameId);
@@ -220,53 +232,6 @@ export function setupWebSocket() {
                         ws.send(JSON.stringify({ action: "notFound", gameId }));
                     }
                 }
-                if (data.action === "set-token") {
-                    loginToken(data.token);
-                }
-                if (data.action === "join-lobby") {
-                    const { lobbyId } = data;
-                    joinLobby(lobbyId);
-                }
-                // if (data.action === "getGameLaunchCommand") {
-                //     const { gameId } = data;
-                //     const launchPath = path.join(gamesDir, gameId, 'launch.sh'); // Adjust the path as needed
-                //     if (fs.existsSync(launchPath)) {
-                //         const command = fs.readFileSync(launchPath, 'utf-8');
-                //         ws.send(JSON.stringify({ action: "gameLaunchCommand", gameId, command }));
-                //     } else {
-                //         ws.send(JSON.stringify({ action: "notFound", gameId }));
-                //     }
-                // }
-                // if (data.action === "getGameLaunchArguments") {
-                //     const { gameId } = data;
-                //     const argsPath = path.join(gamesDir, gameId, 'args.txt'); // Adjust the path as needed
-                //     if (fs.existsSync(argsPath)) {
-                //         const args = fs.readFileSync(argsPath, 'utf-8');
-                //         ws.send(JSON.stringify({ action: "gameLaunchArguments", gameId, args }));
-                //     } else {
-                //         ws.send(JSON.stringify({ action: "notFound", gameId }));
-                //     }
-                // }
-                // if (data.action === "getGameLaunchOptions") {
-                //     const { gameId } = data;
-                //     const optionsPath = path.join(gamesDir, gameId, 'options.txt'); // Adjust the path as needed
-                //     if (fs.existsSync(optionsPath)) {
-                //         const options = fs.readFileSync(optionsPath, 'utf-8');
-                //         ws.send(JSON.stringify({ action: "gameLaunchOptions", gameId, options }));
-                //     } else {
-                //         ws.send(JSON.stringify({ action: "notFound", gameId }));
-                //     }
-                // }
-                // if (data.action === "getGameLaunchEnvironment") {
-                //     const { gameId } = data;
-                //     const envPath = path.join(gamesDir, gameId, 'env.txt'); // Adjust the path as needed
-                //     if (fs.existsSync(envPath)) {
-                //         const env = fs.readFileSync(envPath, 'utf-8');
-                //         ws.send(JSON.stringify({ action: "gameLaunchEnvironment", gameId, env }));
-                //     } else {
-                //         ws.send(JSON.stringify({ action: "notFound", gameId }));
-                //     }
-                // }
             } catch (err) {
                 ws.send(JSON.stringify({ action: "error", message: err.message }));
             }
