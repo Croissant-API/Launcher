@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const devEnv = false;
+export const devEnv = true;
 const PORT_TO_SERVE = devEnv ? "http://localhost:8580/launcher/home" : "https://croissant-api.fr/launcher/home";
 
 // Prevent second instance

@@ -7,6 +7,28 @@ import { spawn } from 'child_process';
 import { BrowserWindow } from 'electron'; // Add this import at the top
 import zip from 'adm-zip'; // Ensure you have adm-zip installed for ZIP extraction
 
+import RPC from 'discord-rpc';
+import DiscordRpcManager from "../discordRpcManager.js";
+
+const now = new Date();
+
+const clientId = '1324530344900431923';
+const rpc = new RPC.Client({ transport: 'ipc' });
+rpc.login({ clientId }).catch(console.error);
+rpc.on('ready', () => {
+    console.log('Discord Rich Presence is ready!');
+    discordRpcManager.isReady = true;
+    discordRpcManager.setActivity({
+        details: 'Ready to play',
+        state: 'Waiting for game to start',
+        startTimestamp: now,
+        largeImageKey: 'croissant_launcher', // Replace with your actual image key
+    }, true);
+    console.log('Rich Presence set!');
+});
+
+const discordRpcManager = new DiscordRpcManager(rpc);
+
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
 export function setupWebSocket() {
@@ -73,6 +95,19 @@ export function setupWebSocket() {
                     // Here, launch the game (e.g., spawn process)
                     ws.send(JSON.stringify({ action: "playing", gameId }));
 
+                    const game = await fetch(`https://croissant-api.fr/api/games/${gameId}`).then(res => res.json());
+                    const gameName = game.name || 'Unknown Game';
+
+                    discordRpcManager.setActivity({
+                        details: 'Playing game',
+                        state: `Playing ${gameName}`,
+                        startTimestamp: now,
+                        largeImageKey: 'game_icon', // Replace with actual game icon key
+                        largeImageText: `Playing ${gameName}`,
+                        smallImageKey: 'play',
+                        smallImageText: 'In game',
+                    });
+
                     const gamePath = path.join(gamesDir, gameId);
                     let launchFile = null;
                     const candidates = ['.exe', 'index.js', 'index.ts', 'index.html'];
@@ -106,6 +141,11 @@ export function setupWebSocket() {
                             proc.unref();
                             proc.on('exit', () => {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                                discordRpcManager.setActivity({
+                                    details: 'Ready to play',
+                                    state: 'Waiting for game to start',
+                                    startTimestamp: now,
+                                });
                             });
                         } else if (launchFile.endsWith('.js')) {
                             proc = spawn(
@@ -116,6 +156,11 @@ export function setupWebSocket() {
                             proc.unref();
                             proc.on('exit', () => {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                                discordRpcManager.setActivity({
+                                    details: 'Ready to play',
+                                    state: 'Waiting for game to start',
+                                    startTimestamp: now,
+                                });
                             });
                         } else if (launchFile.endsWith('.ts')) {
                             proc = spawn(
@@ -126,6 +171,11 @@ export function setupWebSocket() {
                             proc.unref();
                             proc.on('exit', () => {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                                discordRpcManager.setActivity({
+                                    details: 'Ready to play',
+                                    state: 'Waiting for game to start',
+                                    startTimestamp: now,
+                                });
                             });
                         } else if (launchFile.endsWith('.html')) {
                             // Open in a new Electron BrowserWindow with query string
@@ -141,15 +191,30 @@ export function setupWebSocket() {
                             win.loadURL(`file://${launchFile}?croissantId=${encodeURIComponent(playerId)}&croissantVerificationKey=${encodeURIComponent(verificationKey)}`);
                             win.on('closed', () => {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                                discordRpcManager.setActivity({
+                                    details: 'Ready to play',
+                                    state: 'Waiting for game to start',
+                                    startTimestamp: now,
+                                });
                             });
                         }
                     } else {
                         ws.send(JSON.stringify({ action: "error", message: "No launchable file found for game " + gameId }));
                         ws.send(JSON.stringify({ action: "closeGame", gameId }));
+                        discordRpcManager.setActivity({
+                            details: 'Ready to play',
+                            state: 'Waiting for game to start',
+                            startTimestamp: now,
+                        });
                     }
                 }
                 if (data.action === "closeGame") {
                     const { gameId } = data;
+                    discordRpcManager.setActivity({
+                        details: 'Ready to play',
+                        state: 'Waiting for game to start',
+                        startTimestamp: now,
+                    });
                     // Here, close the game process if needed
                     ws.send(JSON.stringify({ action: "closed", gameId }));
                 }
@@ -251,6 +316,27 @@ export function setupWebSocket() {
                     } else {
                         ws.send(JSON.stringify({ action: "notFound", gameId }));
                     }
+                }
+                if (data.action === "lobbyUpdate") {
+                    const { lobbyId, users } = data;
+                    if(discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
+                        discordRpcManager.updateLobby({ id: lobbyId, name: `Lobby ${lobbyId}`, size: users.length, max: 10, joinSecret: `${lobbyId}secret` });
+                    }
+                    else {
+                        discordRpcManager.createLobby({ id: lobbyId, name: `Lobby ${lobbyId}`, size: users.length, max: 10, joinSecret: `${lobbyId}secret` });
+                    }
+                    ws.send(JSON.stringify({ action: "lobbyUpdated", lobbyId, users }));
+                }
+                if(data.action === "lobbyLeave") {
+                    const { lobbyId } = data;
+                    if(discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
+                        discordRpcManager.clearLobby();
+                    }
+                    ws.send(JSON.stringify({ action: "lobbyLeft", lobbyId }));
+                }
+                if (data.action === "updateState") {
+                    const { state } = data;
+                    discordRpcManager.updateState(state);
                 }
             } catch (err) {
                 ws.send(JSON.stringify({ action: "error", message: err.message }));

@@ -22,10 +22,10 @@ let deeplinkToHandle = null; // Stocke le deeplink reçu avant que la fenêtre n
 
 function handleDeeplink(url, win) {
   try {
-    const match = url.match(/croissant(-launcher):\/\/.*/i);
+    const match = url.match(/(croissant(-launcher)|discord-\d+):\/\/.*/i);
     const cleanUrl = match ? match[0] : url;
     const parsed = new URL(cleanUrl);
-    if (parsed.protocol !== 'croissant-launcher:') return;
+    if (parsed.protocol !== 'croissant-launcher:' && !parsed.protocol.startsWith('discord-')) return;
     if (!win) return;
     if (parsed.hostname === 'join-lobby') {
       const lobbyId = parsed.searchParams.get('lobbyId');
@@ -63,6 +63,8 @@ export function joinLobby(lobbyId, win) {
 export function startApp() {
   ensureGamesDir();
 
+  // console.log(process.argv)
+
   // Stocke le deeplink passé au lancement (Windows/Linux)
   if ((process.platform === 'win32' || process.platform === 'linux') && process.argv.length > 1) {
     const deeplinkArg = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`));
@@ -78,8 +80,9 @@ export function startApp() {
   }
 
   app.on('second-instance', (event, argv) => {
+    // console.log('Second instance detected', process.argv, argv);
     // Sur Windows/Linux, argv contient le deeplink
-    const deeplinkArg = argv.find(arg => arg.startsWith(`${PROTOCOL}://`));
+    const deeplinkArg = argv.find(arg => arg.startsWith(`${PROTOCOL}://`) || arg.startsWith('discord-'));
     if (deeplinkArg) {
       if (mainWindow) {
         handleDeeplink(deeplinkArg, mainWindow);
@@ -110,10 +113,18 @@ export function startApp() {
     createTray(mainWindow);
     setupWebSocket();
 
-    // Enregistre le protocole
-    if (app.setAsDefaultProtocolClient) {
-      app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.cwd(), '.')]);
-    }
+    
+    if (process.defaultApp) {
+      if (process.argv.length >= 2) { app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]) }
+    } else { app.setAsDefaultProtocolClient(PROTOCOL) }
+
+    // // Enregistre le protocole
+    // if (app.setAsDefaultProtocolClient) {
+    //   // console.log(process.execPath, [path.resolve(process.cwd(), '.')]);
+    //   console.log('Setting protocol client for', PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+    //   app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+    //   app.setAsDefaultProtocolClient("discord-1324530344900431923://", process.execPath, [path.resolve(process.argv[1])]);
+    // }
 
     // Si un deeplink a été reçu avant que la fenêtre ne soit prête, traite-le maintenant
     if (deeplinkToHandle) {
@@ -158,7 +169,7 @@ export function startApp() {
   });
 
   ipcMain.on('open-email-login', (event) => {
-    open(ENDPOINT + "login?from=launcher")
+    open(ENDPOINT + "transmitToken?from=launcher")
   });
 
   app.on('activate', () => {
