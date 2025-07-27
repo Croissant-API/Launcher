@@ -20,9 +20,15 @@ rpc.on('ready', () => {
     discordRpcManager.isReady = true;
     discordRpcManager.setActivity({
         details: 'Ready to play',
-        state: 'Waiting for game to start',
+        state: 'Loading...',
         startTimestamp: now,
-        largeImageKey: 'croissant_launcher', // Replace with your actual image key
+        // Replace with your actual image key,
+        lobbyId: "test-lobby", // Placeholder lobby ID
+        partyId: "test-party", // Placeholder party ID
+        partySize: 1,          // Placeholder party size
+        partyMax: 10,           // Placeholder max party size
+        joinSecret: "test-secret", // Placeholder join secret
+        smallImageKey: 'ready', // Placeholder small image key
     }, true);
     console.log('Rich Presence set!');
 });
@@ -99,8 +105,7 @@ export function setupWebSocket() {
                     const gameName = game.name || 'Unknown Game';
 
                     discordRpcManager.setActivity({
-                        details: 'Playing game',
-                        state: `Playing ${gameName}`,
+                        details: `Playing ${gameName}`,
                         startTimestamp: now,
                         largeImageKey: 'game_icon', // Replace with actual game icon key
                         largeImageText: `Playing ${gameName}`,
@@ -143,7 +148,7 @@ export function setupWebSocket() {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
                                 discordRpcManager.setActivity({
                                     details: 'Ready to play',
-                                    state: 'Waiting for game to start',
+
                                     startTimestamp: now,
                                 });
                             });
@@ -158,7 +163,7 @@ export function setupWebSocket() {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
                                 discordRpcManager.setActivity({
                                     details: 'Ready to play',
-                                    state: 'Waiting for game to start',
+
                                     startTimestamp: now,
                                 });
                             });
@@ -173,7 +178,7 @@ export function setupWebSocket() {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
                                 discordRpcManager.setActivity({
                                     details: 'Ready to play',
-                                    state: 'Waiting for game to start',
+
                                     startTimestamp: now,
                                 });
                             });
@@ -193,7 +198,7 @@ export function setupWebSocket() {
                                 ws.send(JSON.stringify({ action: "closeGame", gameId }));
                                 discordRpcManager.setActivity({
                                     details: 'Ready to play',
-                                    state: 'Waiting for game to start',
+
                                     startTimestamp: now,
                                 });
                             });
@@ -203,7 +208,7 @@ export function setupWebSocket() {
                         ws.send(JSON.stringify({ action: "closeGame", gameId }));
                         discordRpcManager.setActivity({
                             details: 'Ready to play',
-                            state: 'Waiting for game to start',
+
                             startTimestamp: now,
                         });
                     }
@@ -212,7 +217,7 @@ export function setupWebSocket() {
                     const { gameId } = data;
                     discordRpcManager.setActivity({
                         details: 'Ready to play',
-                        state: 'Waiting for game to start',
+
                         startTimestamp: now,
                     });
                     // Here, close the game process if needed
@@ -319,7 +324,7 @@ export function setupWebSocket() {
                 }
                 if (data.action === "lobbyUpdate") {
                     const { lobbyId, users } = data;
-                    if(discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
+                    if (discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
                         discordRpcManager.updateLobby({ id: lobbyId, name: `Lobby ${lobbyId}`, size: users.length, max: 10, joinSecret: `${lobbyId}secret` });
                     }
                     else {
@@ -327,9 +332,9 @@ export function setupWebSocket() {
                     }
                     ws.send(JSON.stringify({ action: "lobbyUpdated", lobbyId, users }));
                 }
-                if(data.action === "lobbyLeave") {
+                if (data.action === "lobbyLeave") {
                     const { lobbyId } = data;
-                    if(discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
+                    if (discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
                         discordRpcManager.clearLobby();
                     }
                     ws.send(JSON.stringify({ action: "lobbyLeft", lobbyId }));

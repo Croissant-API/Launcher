@@ -13,7 +13,7 @@ class DiscordRpcManager {
     }
 
     setActivity(activity, initialize = false) {
-        this.activity = activity;
+        this.activity = {...this.activity, ...activity};
         if (this.isReady && initialize) {
             this.rpc.setActivity(this.activity);
         }
