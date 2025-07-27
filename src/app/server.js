@@ -34,7 +34,10 @@ export const startServer = () => {
         }
       });
       const gamesList = await response.json();
-
+      if (!Array.isArray(gamesList)) {
+        res.status(500).json({ message: 'Invalid response from API', response: gamesList });
+        return;
+      }
       const games = [];
       for (const game of gamesList) {
         games.push({

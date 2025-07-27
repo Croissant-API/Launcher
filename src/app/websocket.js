@@ -2,10 +2,10 @@ import { WebSocketServer } from "ws";
 import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
-import { loginToken, joinLobby } from './app.js';
 import { checkInstallationStatus } from './games.js';
 import { spawn } from 'child_process';
 import { BrowserWindow } from 'electron'; // Add this import at the top
+import zip from 'adm-zip'; // Ensure you have adm-zip installed for ZIP extraction
 
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
@@ -24,21 +24,41 @@ export function setupWebSocket() {
                     const { gameId, downloadUrl } = data;
                     const dest = path.join(gamesDir, gameId);
                     if (!fs.existsSync(dest)) {
-                        if(downloadUrl.endsWith('.zip')) {
-                            // Download and extract ZIP
+                        if (downloadUrl.endsWith('.zip')) {
+                            // Download and extract ZIP with progress
+                            console.debug(`[WS] downloadGame:`, { gameId, downloadUrl });
                             const response = await fetch(downloadUrl);
                             if (!response.ok) {
                                 ws.send(JSON.stringify({ action: "error", message: "Failed to download game" }));
                                 return;
                             }
-                            const buffer = await response.buffer();
+                            const total = Number(response.headers.get('content-length')) || 0;
+                            let received = 0;
+                            const chunks = [];
+                            const reader = response.body.getReader();
+
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                if (done) break;
+                                chunks.push(value);
+                                received += value.length;
+                                if (total > 0) {
+                                    const percent = Math.round((received / total) * 100);
+                                    ws.send(JSON.stringify({ action: "downloadProgress", gameId, percent }));
+                                }
+                            }
+
+                            console.debug(`[WS] downloadGame: Downloading ZIP for game ${gameId}`);
                             fs.mkdirSync(dest, { recursive: true });
-                            const zip = require('adm-zip');
+                            const buffer = Buffer.concat(chunks);
+                            console.debug(`[WS] downloadGame: Extracting ZIP for game ${gameId}`);
                             const zipFilePath = path.join(dest, 'game.zip');
                             fs.writeFileSync(zipFilePath, buffer);
                             const zipInstance = new zip(zipFilePath);
                             zipInstance.extractAllTo(dest, true);
+                            console.debug(`[WS] downloadGame: ZIP extracted for game ${gameId}`);
                             fs.unlinkSync(zipFilePath); // Remove the zip file after extraction
+                            ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
                         } else {
                             // Git clone
                             await simpleGit().clone(downloadUrl, dest);
