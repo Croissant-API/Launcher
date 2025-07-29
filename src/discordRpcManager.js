@@ -1,3 +1,5 @@
+import { join } from "path";
+
 class DiscordRpcManager {
     constructor(rpc) {
         this.activity = null;
@@ -42,7 +44,7 @@ class DiscordRpcManager {
 
     clearLobby() {
         this.lobby = null;
-        this.setActivity({ ...this.activity, partyId: undefined });
+        this.setActivity({ ...this.activity, partyId: undefined, joinSecret: undefined, partySize: undefined, partyMax: undefined });
     }
 
     updateState(state) {
