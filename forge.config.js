@@ -27,7 +27,7 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: {
         name: 'CroissantLauncher',
-        setupIcon: 'assets/icon.ico',
+        setupIcon: './src/icon.ico',
         shortcutName: 'Croissant Launcher',
         createDesktopShortcut: true,
         createStartMenuShortcut: true,
