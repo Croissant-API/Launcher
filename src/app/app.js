@@ -2,45 +2,63 @@ import { app, shell } from 'electron';
 import { startServer } from './server.js';
 import { createMainWindow } from './mainWindow.js';
 import { createTray } from './tray.js';
-import { setupWebSocket } from './websocket.js';
+import { setupWebSocket, setMainWindow } from './websocket.js';
 import { ensureGamesDir } from './games.js';
 import { ipcMain } from 'electron';
 import path from 'path';
-
 import { fileURLToPath } from 'url';
 import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 import { devEnv } from './mainWindow.js';
 const ENDPOINT = devEnv ? "http://localhost:8580/" : "https://croissant-api.fr/";
-const PROTOCOL = 'croissant-launcher'; // Utilise ce nom partout
+const PROTOCOL = 'croissant-launcher';
+const DISCORD_CLIENT_ID = '1324530344900431923';
 
 let mainWindow = null;
-let deeplinkToHandle = null; // Stocke le deeplink reçu avant que la fenêtre ne soit prête
+let deeplinkToHandle = null;
 
 function handleDeeplink(url, win) {
   try {
+    if (url.startsWith(`discord-${DISCORD_CLIENT_ID}://`)) {
+      return;
+    }
     const match = url.match(/(croissant(-launcher)|discord-\d+):\/\/.*/i);
     const cleanUrl = match ? match[0] : url;
+    if (cleanUrl.startsWith(`discord-${DISCORD_CLIENT_ID}://`)) {
+      const secretMatch = cleanUrl.match(/secret=([^&]+)/);
+      const pathSecret = cleanUrl.match(new RegExp(`discord-${DISCORD_CLIENT_ID}:\/\/\/([^?]+)`));
+      let joinSecret = null;
+      if (secretMatch) {
+        joinSecret = decodeURIComponent(secretMatch[1]);
+      } else if (pathSecret) {
+        joinSecret = decodeURIComponent(pathSecret[1]);
+      }
+      if (joinSecret) {
+        if (joinSecret.startsWith('join-lobby:lobbyId=')) {
+          const lobbyId = joinSecret.replace('join-lobby:lobbyId=', '');
+          joinLobby(lobbyId, win);
+          return;
+        } else {
+          joinLobby(joinSecret, win);
+          return;
+        }
+      }
+      return;
+    }
     const parsed = new URL(cleanUrl);
-    if (parsed.protocol !== 'croissant-launcher:' && !parsed.protocol.startsWith('discord-')) return;
+    if (parsed.protocol !== `${PROTOCOL}:`) return;
     if (!win) return;
     if (parsed.hostname === 'join-lobby') {
       const lobbyId = parsed.searchParams.get('lobbyId');
-      if (lobbyId) {
-        joinLobby(lobbyId, win);
-      }
+      if (lobbyId) joinLobby(lobbyId, win);
     } else if (parsed.hostname === 'set-token') {
       const token = parsed.searchParams.get('token');
-      if (token) {
-        loginToken(token, win);
-      }
+      if (token) loginToken(token, win);
     }
   } catch (e) {
-    // Optionally log error
-    // console.error('Invalid deeplink:', url, e);
+    console.error('Invalid deeplink:', url, e);
   }
 }
 
@@ -62,33 +80,26 @@ export function joinLobby(lobbyId, win) {
 
 export function startApp() {
   ensureGamesDir();
-
-  // console.log(process.argv)
-
-  // Stocke le deeplink passé au lancement (Windows/Linux)
   if ((process.platform === 'win32' || process.platform === 'linux') && process.argv.length > 1) {
-    const deeplinkArg = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`));
-    if (deeplinkArg) {
-      deeplinkToHandle = deeplinkArg;
-    }
+    const deeplinkArg = process.argv.find(arg => 
+      arg.startsWith(`${PROTOCOL}://`) || 
+      arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`)
+    );
+    if (deeplinkArg) deeplinkToHandle = deeplinkArg;
   }
-
   const gotTheLock = app.requestSingleInstanceLock();
   if (!gotTheLock) {
     app.quit();
     return;
   }
-
   app.on('second-instance', (event, argv) => {
-    // console.log('Second instance detected', process.argv, argv);
-    // Sur Windows/Linux, argv contient le deeplink
-    const deeplinkArg = argv.find(arg => arg.startsWith(`${PROTOCOL}://`) || arg.startsWith('discord-'));
+    const deeplinkArg = argv.find(arg => 
+      arg.startsWith(`${PROTOCOL}://`) || 
+      arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`)
+    );
     if (deeplinkArg) {
-      if (mainWindow) {
-        handleDeeplink(deeplinkArg, mainWindow);
-      } else {
-        deeplinkToHandle = deeplinkArg;
-      }
+      if (mainWindow) handleDeeplink(deeplinkArg, mainWindow);
+      else deeplinkToHandle = deeplinkArg;
     }
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
@@ -96,85 +107,57 @@ export function startApp() {
       mainWindow.focus();
     }
   });
-
-  // macOS : gestion du deeplink via open-url
   app.on('open-url', (event, url) => {
     event.preventDefault();
-    if (mainWindow) {
-      handleDeeplink(url, mainWindow);
-    } else {
-      deeplinkToHandle = url;
-    }
+    if (mainWindow) handleDeeplink(url, mainWindow);
+    else deeplinkToHandle = url;
   });
-
   app.whenReady().then(() => {
     startServer();
     mainWindow = createMainWindow();
+    setMainWindow(mainWindow);
     createTray(mainWindow);
     setupWebSocket();
-
-    
     if (process.defaultApp) {
-      if (process.argv.length >= 2) { app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]) }
-    } else { app.setAsDefaultProtocolClient(PROTOCOL) }
-
-    // // Enregistre le protocole
-    // if (app.setAsDefaultProtocolClient) {
-    //   // console.log(process.execPath, [path.resolve(process.cwd(), '.')]);
-    //   console.log('Setting protocol client for', PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
-    //   app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
-    //   app.setAsDefaultProtocolClient("discord-1324530344900431923://", process.execPath, [path.resolve(process.argv[1])]);
-    // }
-
-    // Si un deeplink a été reçu avant que la fenêtre ne soit prête, traite-le maintenant
+      app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+      app.setAsDefaultProtocolClient(`discord-${DISCORD_CLIENT_ID}`, process.execPath, [path.resolve(process.argv[1])]);
+    } else {
+      app.setAsDefaultProtocolClient(PROTOCOL);
+      app.setAsDefaultProtocolClient(`discord-${DISCORD_CLIENT_ID}`);
+    }
     if (deeplinkToHandle) {
       setTimeout(() => handleDeeplink(deeplinkToHandle, mainWindow), 500);
       deeplinkToHandle = null;
     }
   });
-
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+    if (process.platform !== 'darwin') app.quit();
   });
-
   ipcMain.on('window-minimize', (event) => {
     const win = event.sender.getOwnerBrowserWindow();
     if (win) win.minimize();
   });
-
   ipcMain.on('window-maximize', (event) => {
     const win = event.sender.getOwnerBrowserWindow();
     if (win) {
-      if (win.isMaximized()) {
-        win.unmaximize();
-      } else {
-        win.maximize();
-      }
+      if (win.isMaximized()) win.unmaximize();
+      else win.maximize();
     }
   });
-
   ipcMain.on('window-close', (event) => {
     const win = event.sender.getOwnerBrowserWindow();
     if (win) win.close();
   });
-
-  ipcMain.on('open-discord-login', (event) => {
-    open(ENDPOINT + "auth/discord")
+  ipcMain.on('open-discord-login', () => {
+    open(ENDPOINT + "auth/discord");
   });
-
-  ipcMain.on('open-google-login', (event) => {
-    open(ENDPOINT + "auth/google")
+  ipcMain.on('open-google-login', () => {
+    open(ENDPOINT + "auth/google");
   });
-
-  ipcMain.on('open-email-login', (event) => {
-    open(ENDPOINT + "transmitToken?from=launcher")
+  ipcMain.on('open-email-login', () => {
+    open(ENDPOINT + "transmitToken?from=launcher");
   });
-
   app.on('activate', () => {
-    if (mainWindow === null) {
-      mainWindow = createMainWindow();
-    }
+    if (mainWindow === null) mainWindow = createMainWindow();
   });
 }

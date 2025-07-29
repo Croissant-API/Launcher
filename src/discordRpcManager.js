@@ -9,11 +9,11 @@ class DiscordRpcManager {
             if (this.isReady) {
                 this.rpc.setActivity(this.activity);
             }
-        }, 15000);
+        }, 3000);
     }
 
     setActivity(activity, initialize = false) {
-        this.activity = {...this.activity, ...activity};
+        this.activity = { ...this.activity, ...activity };
         if (this.isReady && initialize) {
             this.rpc.setActivity(this.activity);
         }
@@ -23,19 +23,18 @@ class DiscordRpcManager {
         this.lobby = lobbyInfo;
         this.setActivity({
             ...this.activity,
-            // state: `In lobby: ${lobbyInfo.name}`,
             partyId: lobbyInfo.id,
             partySize: lobbyInfo.size,
             partyMax: lobbyInfo.max,
             joinSecret: lobbyInfo.joinSecret,
         });
+        console.log('Discord activity set with joinSecret:', lobbyInfo.joinSecret);
     }
 
     updateLobby(lobbyInfo) {
         this.lobby = { ...this.lobby, ...lobbyInfo };
         this.setActivity({
             ...this.activity,
-            // state: `In lobby: ${this.lobby.name}`,
             partySize: this.lobby.size,
             partyMax: this.lobby.max,
         });
@@ -43,20 +42,20 @@ class DiscordRpcManager {
 
     clearLobby() {
         this.lobby = null;
-        this.setActivity({ ...this.activity, /*state: 'Not in lobby',*/ partyId: undefined });
+        this.setActivity({ ...this.activity, partyId: undefined });
     }
 
     updateState(state) {
         if (this.activity) {
             this.setActivity({
                 ...this.activity,
-                state: state,
+                state,
             });
         }
     }
 
     disconnect() {
-        rpc.destroy();
+        this.rpc.destroy();
         this.isReady = false;
     }
 }
