@@ -1,7 +1,7 @@
 {
   "name": "croissant-launcher",
   "productName": "croissant-launcher",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
