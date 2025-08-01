@@ -37,7 +37,6 @@ rpc.on('ready', () => {
     });
     rpc.subscribe('ACTIVITY_JOIN');
     rpc.on('ACTIVITY_JOIN', ({ secret }) => {
-        console.log(`Un utilisateur veut rejoindre avec le secret : ${secret}`);
         //joinLobby(secret.split("secret")[0], mainWindow);
         actualConnection.send(JSON.stringify({
             action: "joinLobby",
@@ -51,7 +50,6 @@ rpc.on('error', (error) => {
 });
 
 rpc.on('disconnected', () => {
-    console.log('Discord RPC Disconnected');
 });
 
 module.exports.setupWebSocket = () => {
@@ -335,7 +333,6 @@ module.exports.setupWebSocket = () => {
                             });
                         }
                     } else {
-                        console.warn("Lobby ID is missing in lobby update");
                         discordRpcManager.clearLobby();
                     }
                     ws.send(JSON.stringify({ action: "lobbyUpdated" }));
@@ -361,6 +358,5 @@ module.exports.setupWebSocket = () => {
             }
         });
     });
-    console.log("WebSocket server setup complete");
     return wss;
 }

@@ -28,7 +28,6 @@ class DiscordRpcManager {
             partyMax: lobbyInfo.max,
             joinSecret: lobbyInfo.joinSecret,
         });
-        console.log('Discord activity set with joinSecret:', lobbyInfo.joinSecret);
     }
 
     updateLobby(lobbyInfo) {
