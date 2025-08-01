@@ -7,6 +7,7 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const ENDPOINT = "http://localhost:8580/launcher/home?from=app";
+const basePath = process.pkg ? path.dirname(process.execPath) : __dirname;
 
 async function startApp() {
   const appProcess = exec(
@@ -18,7 +19,7 @@ async function startApp() {
     }
   );
 
-  const lockFilePath = path.join(process.cwd(), 'app.pid');
+  const lockFilePath = path.join(basePath, 'app.pid');
 
   if (fs.existsSync(lockFilePath)) {
     console.log('App is already running (lockfile detected).');

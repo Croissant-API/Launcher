@@ -1,3 +1,5 @@
+const { createRequire } = require('node:module');
+require = createRequire(__filename); 
 
 const path = require('path');
 const ws = require('windows-shortcuts');

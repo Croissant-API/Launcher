@@ -1,0 +1,14 @@
+{
+    "entry": "src/index.js",
+    "out": "out/croissant-launcher.exe",
+    "skipBundle": false,
+    "version": "{package:version}",
+    "icon": "src/icon.ico",
+    "executionLevel": "asInvoker",
+    "properties": {
+        "FileDescription": "{package:description}",
+        "ProductName": "Croissant Launcher",
+        "LegalCopyright": "Copyright Croissant-API",
+        "OriginalFilename": "{package:name}"
+    }
+}
