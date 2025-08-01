@@ -4,22 +4,17 @@ const path = require('path');
 const simpleGit = require('simple-git');
 const { checkInstallationStatus } = require('./games.js');
 const { spawn } = require('child_process');
-const { BrowserWindow } = require('electron');
 const zip = require('adm-zip');
-const { joinLobby } = require('./app.js');
 const RPC = require('discord-rpc');
 const DiscordRpcManager = require("../discordRpcManager.js");
 
 const now = new Date();
 const clientId = '1324530344900431923';
 const rpc = new RPC.Client({ transport: 'ipc' });
-let mainWindow = null;
 const discordRpcManager = new DiscordRpcManager(rpc);
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
-module.exports.setMainWindow = (window) => {
-    mainWindow = window;
-}
+let actualConnection = null;
 
 rpc.login({ clientId }).catch(console.error);
 
@@ -43,7 +38,11 @@ rpc.on('ready', () => {
     rpc.subscribe('ACTIVITY_JOIN');
     rpc.on('ACTIVITY_JOIN', ({ secret }) => {
         console.log(`Un utilisateur veut rejoindre avec le secret : ${secret}`);
-        joinLobby(secret.split("secret")[0], mainWindow);
+        //joinLobby(secret.split("secret")[0], mainWindow);
+        actualConnection.send(JSON.stringify({
+            action: "joinLobby",
+            lobbyId: secret.split("secret")[0],
+        }));
     });
 });
 
@@ -61,6 +60,7 @@ module.exports.setupWebSocket = () => {
 
     wss.on("connection", (ws) => {
         ws.send(JSON.stringify({ action: "serverReady" }));
+        actualConnection = ws;
 
         ws.on("message", async (msg) => {
             try {
@@ -174,18 +174,6 @@ module.exports.setupWebSocket = () => {
                             );
                             proc.unref();
                             proc.on('exit', onExit);
-                        } else if (launchFile.endsWith('.html')) {
-                            const win = new BrowserWindow({
-                                width: 800,
-                                height: 600,
-                                autoHideMenuBar: true,
-                                webPreferences: {
-                                    nodeIntegration: true,
-                                    contextIsolation: false,
-                                }
-                            });
-                            win.loadURL(`file://${launchFile}?croissantId=${encodeURIComponent(playerId)}&croissantVerificationKey=${encodeURIComponent(verificationKey)}`);
-                            win.on('closed', onExit);
                         }
                     } else {
                         ws.send(JSON.stringify({ action: "error", message: "No launchable file found for game " + gameId }));
@@ -373,4 +361,6 @@ module.exports.setupWebSocket = () => {
             }
         });
     });
+    console.log("WebSocket server setup complete");
+    return wss;
 }
