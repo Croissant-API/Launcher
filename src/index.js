@@ -1,6 +1,8 @@
 const { createRequire } = require('node:module');
 require = createRequire(__filename); 
 
+console.log('Starting Croissant Launcher...');
+
 const path = require('path');
 const ws = require('windows-shortcuts');
 

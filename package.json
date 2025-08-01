@@ -3,11 +3,16 @@
   "productName": "croissant-launcher",
   "version": "1.2.4",
   "description": "Croissant Launcher is a desktop application for Croissant-API, providing a user-friendly interface to access and manage Croissant services.",
-  "main": "src/index.js",
+  "main": "index.html",
   "scripts": {
-    "start": "node .",
+    "start": "nw .",
     "lint": "echo \"No linting configured\"",
     "build": "node exe.js"
+  },
+  "window": {
+    "title": "Croissant Launcher",
+    "icon": "icon.png",
+    "toolbar": false
   },
   "keywords": [],
   "author": {
@@ -26,7 +31,9 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "node-fetch": "^2.7.0",
-    "node-notifier": "^10.0.1",
+    "node-hide-console-window": "^2.2.0",
+    "nw": "^0.101.2",
+    "nw.gui": "^0.0.1-security",
     "open": "^10.1.2",
     "path": "^0.12.7",
     "simple-git": "^3.27.0",
