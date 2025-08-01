@@ -1,5 +1,6 @@
 // build.js
 const exe = require("@angablue/exe");
+const rcedit = require('rcedit');
 
 const build = exe({
     "entry": "src/index.js",
@@ -8,6 +9,7 @@ const build = exe({
     "version": "{package:version}",
     "icon": "src/icon.ico",
     "executionLevel": "asInvoker",
+    "windowsHideConsole": true,
     "properties": {
         "FileDescription": "{package:description}",
         "ProductName": "Croissant Launcher",
@@ -15,19 +17,19 @@ const build = exe({
         "OriginalFilename": "{package:name}"
     }
 });
-
 build.then(() => {
-    if(fs.existsSync("croissant-launcher.exe")) {
-        console.log("Executable created successfully!");
-        // Move into the "out" folder, create it if it doesn't exist
-        const outDir = path.join(__dirname, 'out');
-        if (!fs.existsSync(outDir)) {
-            fs.mkdirSync(outDir);
-        }
-        fs.copyFileSync("croissant-launcher.exe", path.join(outDir, "croissant-launcher.exe"));
-    } else {
-        console.error("Failed to create executable.");
-    }
+    console.log("Executable created successfully.");
+    // Optionally, you can modify the executable properties using rcedit
+    rcedit("croissant-launcher.exe", {
+        "version": "1.0.0",
+        "fileVersion": "1.0.0",
+        "productVersion": "1.0.0"
+    }).then(() => {
+        console.log("Executable properties updated successfully.");
+    }).catch(err => {
+        console.error("Error updating executable properties:", err);
+    });
 }).catch(err => {
-    console.error("Build failed:", err);
+    console.error("Error creating executable:", err);
 });
+module.exports = build;
