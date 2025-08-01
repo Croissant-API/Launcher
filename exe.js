@@ -1,6 +1,5 @@
 // build.js
 const exe = require("@angablue/exe");
-const rcedit = require('rcedit');
 
 const build = exe({
     "entry": "src/index.js",
@@ -10,6 +9,7 @@ const build = exe({
     "icon": "src/icon.ico",
     "executionLevel": "asInvoker",
     "windowsHideConsole": true,
+    "target": "windows", // Ajoutez cette ligne
     "properties": {
         "FileDescription": "{package:description}",
         "ProductName": "Croissant Launcher",
@@ -19,16 +19,6 @@ const build = exe({
 });
 build.then(() => {
     console.log("Executable created successfully.");
-    // Optionally, you can modify the executable properties using rcedit
-    rcedit("croissant-launcher.exe", {
-        "version": "1.0.0",
-        "fileVersion": "1.0.0",
-        "productVersion": "1.0.0"
-    }).then(() => {
-        console.log("Executable properties updated successfully.");
-    }).catch(err => {
-        console.error("Error updating executable properties:", err);
-    });
 }).catch(err => {
     console.error("Error creating executable:", err);
 });
