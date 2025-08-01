@@ -2,7 +2,7 @@ import { app, shell } from 'electron';
 import { startServer } from './server.js';
 import { createMainWindow } from './mainWindow.js';
 import { createTray } from './tray.js';
-import { setupWebSocket, setMainWindow } from './websocket.js';
+import { setupWebSocket } from './websocket.js';
 import { ensureGamesDir } from './games.js';
 import { ipcMain } from 'electron';
 import path from 'path';
@@ -115,7 +115,6 @@ export function startApp() {
   app.whenReady().then(() => {
     startServer();
     mainWindow = createMainWindow();
-    setMainWindow(mainWindow);
     createTray(mainWindow);
     setupWebSocket();
     if (process.defaultApp) {
