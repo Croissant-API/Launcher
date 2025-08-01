@@ -7,10 +7,9 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const ENDPOINT = "http://localhost:8580/launcher/home?from=app";
-const basePath = process.pkg ? path.dirname(process.execPath) : __dirname;
 
 async function startApp() {
-  const appProcess = exec(
+  exec(
     `start msedge.exe --new-window --app="${ENDPOINT}"`,
     (error) => {
       if (error) {
@@ -18,23 +17,6 @@ async function startApp() {
       }
     }
   );
-
-  const lockFilePath = path.join(basePath, 'app.pid');
-
-  if (fs.existsSync(lockFilePath)) {
-    console.log('App is already running (lockfile detected).');
-    process.exit(0);
-  }
-
-  fs.writeFileSync(lockFilePath, process.pid.toString());
-
-  process.on('exit', () => {
-    if (fs.existsSync(lockFilePath)) fs.unlinkSync(lockFilePath);
-    appProcess.kill();
-    console.log('App exited, lockfile removed.');
-  });
-  process.on('SIGINT', () => process.exit());
-  process.on('SIGTERM', () => process.exit());
 
   ensureGamesDir();
   startServer();

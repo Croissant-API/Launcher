@@ -6,31 +6,16 @@ const { checkInstallationStatus } = require('./games.js');
 const { spawn } = require('child_process');
 const zip = require('adm-zip');
 const RPC = require('discord-rpc');
-const DiscordRpcManager = require("../discordRpcManager.js");
 
 const now = new Date();
 const clientId = '1324530344900431923';
 const rpc = new RPC.Client({ transport: 'ipc' });
-const discordRpcManager = new DiscordRpcManager(rpc);
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
 let actualConnection = null;
 
 rpc.login({ clientId }).catch(console.error);
-
 rpc.on('ready', () => {
-    discordRpcManager.isReady = true;
-    discordRpcManager.setActivity({
-        details: 'Ready to play',
-        state: 'In launcher',
-        startTimestamp: now,
-        largeImageKey: 'launcher_icon',
-        largeImageText: 'Croissant Launcher',
-        smallImageKey: 'ready',
-        smallImageText: 'Ready to play',
-        instance: true,
-    }, true);
-
     rpc.subscribe('ACTIVITY_JOIN_REQUEST');
     rpc.on('ACTIVITY_JOIN_REQUEST', ({ user }) => {
         rpc.sendJoinInvite(user.id);
@@ -112,14 +97,7 @@ module.exports.setupWebSocket = () => {
                     ws.send(JSON.stringify({ action: "playing", gameId }));
                     const game = await fetch(`https://croissant-api.fr/api/games/${gameId}`).then(res => res.json());
                     const gameName = game.name || 'Unknown Game';
-                    discordRpcManager.setActivity({
-                        details: `Playing ${gameName}`,
-                        startTimestamp: now,
-                        largeImageKey: 'game_icon',
-                        largeImageText: `Playing ${gameName}`,
-                        smallImageKey: 'play',
-                        smallImageText: 'In game',
-                    });
+
                     const gamePath = path.join(gamesDir, gameId);
                     let launchFile = null;
                     const candidates = ['.exe', 'index.js', 'index.ts', 'index.html'];
@@ -143,10 +121,6 @@ module.exports.setupWebSocket = () => {
                         let proc;
                         const onExit = () => {
                             ws.send(JSON.stringify({ action: "closeGame", gameId }));
-                            discordRpcManager.setActivity({
-                                details: 'Ready to play',
-                                startTimestamp: now,
-                            });
                         };
                         if (launchFile.endsWith('.exe')) {
                             proc = spawn(
@@ -176,20 +150,12 @@ module.exports.setupWebSocket = () => {
                     } else {
                         ws.send(JSON.stringify({ action: "error", message: "No launchable file found for game " + gameId }));
                         ws.send(JSON.stringify({ action: "closeGame", gameId }));
-                        discordRpcManager.setActivity({
-                            details: 'Ready to play',
-                            startTimestamp: now,
-                        });
                     }
                 }
 
                 // Close game
                 if (data.action === "closeGame") {
                     const { gameId } = data;
-                    discordRpcManager.setActivity({
-                        details: 'Ready to play',
-                        startTimestamp: now,
-                    });
                     ws.send(JSON.stringify({ action: "closed", gameId }));
                 }
 
@@ -311,46 +277,9 @@ module.exports.setupWebSocket = () => {
                     }
                 }
 
-                // Lobby update
-                if (data.action === "lobbyUpdate") {
-                    const { lobbyId, users } = data;
-                    if (lobbyId) {
-                        if (discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
-                            discordRpcManager.updateLobby({
-                                id: lobbyId,
-                                name: `Lobby ${lobbyId}`,
-                                size: users.length,
-                                max: 10,
-                                joinSecret: lobbyId + "secret"
-                            });
-                        } else {
-                            discordRpcManager.createLobby({
-                                id: lobbyId,
-                                name: `Lobby ${lobbyId}`,
-                                size: users.length,
-                                max: 10,
-                                joinSecret: lobbyId + "secret"
-                            });
-                        }
-                    } else {
-                        discordRpcManager.clearLobby();
-                    }
-                    ws.send(JSON.stringify({ action: "lobbyUpdated" }));
-                }
-
-                // Lobby leave
-                if (data.action === "lobbyLeave") {
-                    const { lobbyId } = data;
-                    if (discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
-                        discordRpcManager.clearLobby();
-                    }
-                    ws.send(JSON.stringify({ action: "lobbyLeft", lobbyId }));
-                }
-
-                // Update state
-                if (data.action === "updateState") {
-                    const { state } = data;
-                    discordRpcManager.updateState(state);
+                if(data.action === "setActivity") {
+                    // console.log("Setting activity:", data.activity);
+                    rpc.setActivity({...data.activity, partySize: parseInt(data.activity.partySize || 0), partyMax: parseInt(data.activity.partyMax || 0)});
                 }
 
             } catch (err) {
