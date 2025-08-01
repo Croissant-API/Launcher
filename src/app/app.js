@@ -18,7 +18,7 @@ async function startApp() {
     }
   );
 
-  const lockFilePath = path.join(process.cwd(), 'app.lock');
+  const lockFilePath = path.join(process.cwd(), 'app.pid');
 
   if (fs.existsSync(lockFilePath)) {
     console.log('App is already running (lockfile detected).');
