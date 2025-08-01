@@ -1,5 +1,3 @@
-import { join } from "path";
-
 class DiscordRpcManager {
     constructor(rpc) {
         this.activity = null;
@@ -62,4 +60,4 @@ class DiscordRpcManager {
     }
 }
 
-export default DiscordRpcManager;
+module.exports = DiscordRpcManager;

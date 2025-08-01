@@ -1,14 +1,14 @@
-import { WebSocketServer } from "ws";
-import fs from 'fs';
-import path from 'path';
-import simpleGit from 'simple-git';
-import { checkInstallationStatus } from './games.js';
-import { spawn } from 'child_process';
-import { BrowserWindow } from 'electron';
-import zip from 'adm-zip';
-import { joinLobby } from './app.js';
-import RPC from 'discord-rpc';
-import DiscordRpcManager from "../discordRpcManager.js";
+const { WebSocketServer } = require("ws");
+const fs = require('fs');
+const path = require('path');
+const simpleGit = require('simple-git');
+const { checkInstallationStatus } = require('./games.js');
+const { spawn } = require('child_process');
+const { BrowserWindow } = require('electron');
+const zip = require('adm-zip');
+const { joinLobby } = require('./app.js');
+const RPC = require('discord-rpc');
+const DiscordRpcManager = require("../discordRpcManager.js");
 
 const now = new Date();
 const clientId = '1324530344900431923';
@@ -17,7 +17,7 @@ let mainWindow = null;
 const discordRpcManager = new DiscordRpcManager(rpc);
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
-export function setMainWindow(window) {
+module.exports.setMainWindow = (window) => {
     mainWindow = window;
 }
 
@@ -55,7 +55,7 @@ rpc.on('disconnected', () => {
     console.log('Discord RPC Disconnected');
 });
 
-export function setupWebSocket() {
+module.exports.setupWebSocket = () => {
     const wss = new WebSocketServer({ port: 8081 });
     console.log("WebSocket server started on ws://localhost:8081");
 

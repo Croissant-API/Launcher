@@ -1,22 +1,15 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import fetch from 'node-fetch'; // Ensure to install node-fetch if not already
-import { fileURLToPath } from 'url';
-import { checkInstallationStatus } from './games.js';
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const fetch = require('node-fetch'); // Assurez-vous d'installer node-fetch si ce n'est pas déjà fait
+const { checkInstallationStatus } = require('./games.js');
 
-export const PORT = 3333;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const PORT = 3333;
 
-export const startServer = () => {
+module.exports.startServer = () => {
   const server = express();
 
   server.use(cors());
-
-  server.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "build", 'index.html'));
-  });
 
   server.get('/list', async (req, res) => {
     const token = req.headers['authorization'] || req.headers['Authorization'];
@@ -61,5 +54,3 @@ export const startServer = () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
 };
-
-export default startServer;

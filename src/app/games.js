@@ -1,17 +1,17 @@
-import fs from 'fs';
-import path from 'path';
-import simpleGit from 'simple-git';
-import dns from 'dns';
+const fs = require('fs');
+const path = require('path');
+const simpleGit = require('simple-git');
+const dns = require('dns');
 
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
-export const ensureGamesDir = () => {
+module.exports.ensureGamesDir = () => {
   if (!fs.existsSync(gamesDir)) {
     fs.mkdirSync(gamesDir, { recursive: true });
   }
 };
 
-export const checkInstallationStatus = async (gameId) => {
+module.exports.checkInstallationStatus = async (gameId) => {
   let status = 'not_installed';
   if (fs.existsSync(gamesDir)) {
     const gamePath = path.join(gamesDir, gameId);
@@ -26,7 +26,7 @@ export const checkInstallationStatus = async (gameId) => {
   return status;
 };
 
-export const downloadGame = async (gameId, downloadUrl) => {
+module.exports.downloadGame = async (gameId, downloadUrl) => {
   const dest = path.join(gamesDir, gameId);
   if (!fs.existsSync(dest)) {
     await simpleGit().clone(downloadUrl, dest);
