@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node .",
     "webpack": "webpack --config webpack.config.js",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "build:exe": "nexe -i src/index.js -o build/croissant-launcher.exe --target windows-x64-14.5.0"
   },
   "keywords": [],
   "author": {
@@ -28,10 +29,8 @@
     "node-fetch": "^2.7.0",
     "open": "^10.1.2",
     "path": "^0.12.7",
-    "ps-list": "^8.1.1",
     "simple-git": "^3.27.0",
     "url": "^0.11.4",
-    "webpack": "^5.101.0",
     "windows-shortcuts": "^0.1.6",
     "ws": "^8.18.2"
   }
