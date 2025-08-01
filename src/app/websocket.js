@@ -1,49 +1,32 @@
-import { WebSocketServer } from "ws";
-import fs from 'fs';
-import path from 'path';
-import simpleGit from 'simple-git';
-import { checkInstallationStatus } from './games.js';
-import { spawn } from 'child_process';
-import { BrowserWindow } from 'electron';
-import zip from 'adm-zip';
-import { joinLobby } from './app.js';
-import RPC from 'discord-rpc';
-import DiscordRpcManager from "../discordRpcManager.js";
+const { WebSocketServer } = require("ws");
+const fs = require('fs');
+const path = require('path');
+const simpleGit = require('simple-git');
+const { checkInstallationStatus } = require('./games.js');
+const { spawn } = require('child_process');
+const zip = require('adm-zip');
+const RPC = require('discord-rpc');
 
 const now = new Date();
 const clientId = '1324530344900431923';
 const rpc = new RPC.Client({ transport: 'ipc' });
-let mainWindow = null;
-const discordRpcManager = new DiscordRpcManager(rpc);
 const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 
-export function setMainWindow(window) {
-    mainWindow = window;
-}
+let actualConnection = null;
 
 rpc.login({ clientId }).catch(console.error);
-
 rpc.on('ready', () => {
-    discordRpcManager.isReady = true;
-    discordRpcManager.setActivity({
-        details: 'Ready to play',
-        state: 'In launcher',
-        startTimestamp: now,
-        largeImageKey: 'launcher_icon',
-        largeImageText: 'Croissant Launcher',
-        smallImageKey: 'ready',
-        smallImageText: 'Ready to play',
-        instance: true,
-    }, true);
-
     rpc.subscribe('ACTIVITY_JOIN_REQUEST');
     rpc.on('ACTIVITY_JOIN_REQUEST', ({ user }) => {
         rpc.sendJoinInvite(user.id);
     });
     rpc.subscribe('ACTIVITY_JOIN');
     rpc.on('ACTIVITY_JOIN', ({ secret }) => {
-        console.log(`Un utilisateur veut rejoindre avec le secret : ${secret}`);
-        joinLobby(secret.split("secret")[0], mainWindow);
+        //joinLobby(secret.split("secret")[0], mainWindow);
+        actualConnection.send(JSON.stringify({
+            action: "joinLobby",
+            lobbyId: secret.split("secret")[0],
+        }));
     });
 });
 
@@ -52,15 +35,15 @@ rpc.on('error', (error) => {
 });
 
 rpc.on('disconnected', () => {
-    console.log('Discord RPC Disconnected');
 });
 
-export function setupWebSocket() {
+module.exports.setupWebSocket = () => {
     const wss = new WebSocketServer({ port: 8081 });
     console.log("WebSocket server started on ws://localhost:8081");
 
     wss.on("connection", (ws) => {
         ws.send(JSON.stringify({ action: "serverReady" }));
+        actualConnection = ws;
 
         ws.on("message", async (msg) => {
             try {
@@ -114,14 +97,7 @@ export function setupWebSocket() {
                     ws.send(JSON.stringify({ action: "playing", gameId }));
                     const game = await fetch(`https://croissant-api.fr/api/games/${gameId}`).then(res => res.json());
                     const gameName = game.name || 'Unknown Game';
-                    discordRpcManager.setActivity({
-                        details: `Playing ${gameName}`,
-                        startTimestamp: now,
-                        largeImageKey: 'game_icon',
-                        largeImageText: `Playing ${gameName}`,
-                        smallImageKey: 'play',
-                        smallImageText: 'In game',
-                    });
+
                     const gamePath = path.join(gamesDir, gameId);
                     let launchFile = null;
                     const candidates = ['.exe', 'index.js', 'index.ts', 'index.html'];
@@ -145,10 +121,6 @@ export function setupWebSocket() {
                         let proc;
                         const onExit = () => {
                             ws.send(JSON.stringify({ action: "closeGame", gameId }));
-                            discordRpcManager.setActivity({
-                                details: 'Ready to play',
-                                startTimestamp: now,
-                            });
                         };
                         if (launchFile.endsWith('.exe')) {
                             proc = spawn(
@@ -174,36 +146,16 @@ export function setupWebSocket() {
                             );
                             proc.unref();
                             proc.on('exit', onExit);
-                        } else if (launchFile.endsWith('.html')) {
-                            const win = new BrowserWindow({
-                                width: 800,
-                                height: 600,
-                                autoHideMenuBar: true,
-                                webPreferences: {
-                                    nodeIntegration: true,
-                                    contextIsolation: false,
-                                }
-                            });
-                            win.loadURL(`file://${launchFile}?croissantId=${encodeURIComponent(playerId)}&croissantVerificationKey=${encodeURIComponent(verificationKey)}`);
-                            win.on('closed', onExit);
                         }
                     } else {
                         ws.send(JSON.stringify({ action: "error", message: "No launchable file found for game " + gameId }));
                         ws.send(JSON.stringify({ action: "closeGame", gameId }));
-                        discordRpcManager.setActivity({
-                            details: 'Ready to play',
-                            startTimestamp: now,
-                        });
                     }
                 }
 
                 // Close game
                 if (data.action === "closeGame") {
                     const { gameId } = data;
-                    discordRpcManager.setActivity({
-                        details: 'Ready to play',
-                        startTimestamp: now,
-                    });
                     ws.send(JSON.stringify({ action: "closed", gameId }));
                 }
 
@@ -325,47 +277,9 @@ export function setupWebSocket() {
                     }
                 }
 
-                // Lobby update
-                if (data.action === "lobbyUpdate") {
-                    const { lobbyId, users } = data;
-                    if (lobbyId) {
-                        if (discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
-                            discordRpcManager.updateLobby({
-                                id: lobbyId,
-                                name: `Lobby ${lobbyId}`,
-                                size: users.length,
-                                max: 10,
-                                joinSecret: lobbyId + "secret"
-                            });
-                        } else {
-                            discordRpcManager.createLobby({
-                                id: lobbyId,
-                                name: `Lobby ${lobbyId}`,
-                                size: users.length,
-                                max: 10,
-                                joinSecret: lobbyId + "secret"
-                            });
-                        }
-                    } else {
-                        console.warn("Lobby ID is missing in lobby update");
-                        discordRpcManager.clearLobby();
-                    }
-                    ws.send(JSON.stringify({ action: "lobbyUpdated" }));
-                }
-
-                // Lobby leave
-                if (data.action === "lobbyLeave") {
-                    const { lobbyId } = data;
-                    if (discordRpcManager.lobby && discordRpcManager.lobby.id === lobbyId) {
-                        discordRpcManager.clearLobby();
-                    }
-                    ws.send(JSON.stringify({ action: "lobbyLeft", lobbyId }));
-                }
-
-                // Update state
-                if (data.action === "updateState") {
-                    const { state } = data;
-                    discordRpcManager.updateState(state);
+                if(data.action === "setActivity") {
+                    // console.log("Setting activity:", data.activity);
+                    rpc.setActivity({...data.activity, partySize: parseInt(data.activity.partySize || 0), partyMax: parseInt(data.activity.partyMax || 0)});
                 }
 
             } catch (err) {
@@ -373,4 +287,5 @@ export function setupWebSocket() {
             }
         });
     });
+    return wss;
 }
