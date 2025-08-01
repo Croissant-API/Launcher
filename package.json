@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node .",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "build": "node exe.js"
   },
   "keywords": [],
   "author": {
