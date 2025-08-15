@@ -32,6 +32,6 @@ const shortcutPath = path.join(desktop, 'Croissant Launcher.lnk');
 
 ws.create(shortcutPath, {
   target: exePath,
-  desc: 'Start Croissant Launcher',
+  desc: 'Start Croissant Launcher - Démarre l\'application "Croissant Launcher"',
   icon: process.execPath,
 });
