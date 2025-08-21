@@ -1,11 +1,11 @@
-const { WebSocketServer } = require("ws");
-const fs = require("fs");
-const path = require("path");
-const simpleGit = require("simple-git");
-const { checkInstallationStatus } = require("./games.js");
-const { spawn } = require("child_process");
-const zip = require("adm-zip");
-const RPC = require("discord-rpc");
+import { WebSocketServer } from "ws";
+import fs from "fs";
+import path from "path";
+import simpleGit from "simple-git";
+import { checkInstallationStatus } from "./games.js";
+import { spawn } from "child_process";
+import zip from "adm-zip";
+import RPC from "discord-rpc";
 
 const now = new Date();
 const clientId = "1324530344900431923";
@@ -52,7 +52,7 @@ rpc.on("error", (error) => {
 
 rpc.on("disconnected", () => {});
 
-module.exports.setupWebSocket = () => {
+export function setupWebSocket() {
   const wss = new WebSocketServer({ port: 8081 });
   console.log("WebSocket server started on ws://localhost:8081");
 
@@ -136,30 +136,28 @@ module.exports.setupWebSocket = () => {
           const gameName = game.name || "Unknown Game";
 
           const gamePath = path.join(gamesDir, gameId);
+
+          // Correction des permissions sur Linux/macOS
+          if (process.platform === "linux" || process.platform === "darwin") {
+            try {
+              const { spawnSync } = require("child_process");
+              spawnSync("chown", ["-R", process.env.USER, gamePath]);
+            } catch (e) {
+              // Ignore les erreurs de chown
+            }
+          }
+
           let launchFile = null;
           const candidates = [".exe", "index.js", "index.ts", "index.html"];
           const files = fs.readdirSync(gamePath);
           for (const candidate of candidates) {
             if (candidate === ".exe") {
-              // Search for any .exe file in gamePath or its immediate subdirectories (depth 1)
-              let exeFile = files.find((f) => f.endsWith(".exe"));
-              if (!exeFile) {
-                for (const dir of files) {
-                  const subPath = path.join(gamePath, dir);
-                  if (fs.statSync(subPath).isDirectory()) {
-                    const subFiles = fs.readdirSync(subPath);
-                    exeFile = subFiles.find((sf) => sf.endsWith(".exe"));
-                    if (exeFile) {
-                      launchFile = path.join(subPath, exeFile);
-                      break;
-                    }
-                  }
-                }
-              } else {
-                launchFile = path.join(gamePath, exeFile);
+              // Utilise le plus gros .exe trouvé
+              const exePath = findLargestExe(gamePath);
+              if (exePath) {
+                launchFile = exePath;
                 break;
               }
-              if (launchFile) break;
             } else {
               // Check for candidate file in gamePath
               const filePath = path.join(gamePath, candidate);
@@ -186,17 +184,45 @@ module.exports.setupWebSocket = () => {
             const onExit = () => {
               ws.send(JSON.stringify({ action: "closeGame", gameId }));
             };
+            // ...dans la section playGame, remplace le bloc de lancement .exe par :
             if (launchFile.endsWith(".exe")) {
-              proc = spawn(
+              let proc;
+              const exeArgs = [
                 launchFile,
-                [
-                  `--croissantId=${playerId}`,
-                  `--croissantVerificationKey=${verificationKey}`,
-                ],
-                { cwd: gamePath, detached: true, stdio: "ignore" }
-              );
-              proc.unref();
-              proc.on("exit", onExit);
+                `--croissantId=${playerId}`,
+                `--croissantVerificationKey=${verificationKey}`,
+              ];
+              const opts = { cwd: gamePath, detached: true, stdio: "ignore" };
+              let cmd, args;
+              if (
+                process.platform === "linux" ||
+                process.platform === "darwin"
+              ) {
+                cmd = "wine";
+                args = exeArgs;
+              } else {
+                cmd = launchFile;
+                args = exeArgs.slice(1);
+              }
+
+              // Essaye avec les arguments croissant
+              proc = await trySpawnWithFallback(cmd, args, opts, onExit);
+
+              // Si échec, relance sans les arguments croissant
+              if (!proc) {
+                if (
+                  process.platform === "linux" ||
+                  process.platform === "darwin"
+                ) {
+                  proc = spawn("wine", [launchFile], opts);
+                } else {
+                  proc = spawn(launchFile, [], opts);
+                }
+                proc.unref();
+                proc.on("exit", onExit);
+              } else {
+                proc.on("exit", onExit);
+              }
             } else if (launchFile.endsWith(".js")) {
               proc = spawn(
                 process.execPath,
@@ -389,4 +415,63 @@ module.exports.setupWebSocket = () => {
     });
   });
   return wss;
-};
+}
+
+/**
+ * Cherche le plus gros fichier .exe dans un dossier (et ses sous-dossiers immédiats)
+ * @param {string} dir
+ * @returns {string|null} chemin du plus gros .exe ou null
+ */
+function findLargestExe(dir) {
+  let largest = { path: null, size: 0 };
+  const entries = fs.readdirSync(dir);
+
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry);
+    if (fs.statSync(entryPath).isFile() && entry.endsWith(".exe")) {
+      const size = fs.statSync(entryPath).size;
+      if (size > largest.size) {
+        largest = { path: entryPath, size };
+      }
+    } else if (fs.statSync(entryPath).isDirectory()) {
+      const subEntries = fs.readdirSync(entryPath);
+      for (const subEntry of subEntries) {
+        const subEntryPath = path.join(entryPath, subEntry);
+        if (fs.statSync(subEntryPath).isFile() && subEntry.endsWith(".exe")) {
+          const size = fs.statSync(subEntryPath).size;
+          if (size > largest.size) {
+            largest = { path: subEntryPath, size };
+          }
+        }
+      }
+    }
+  }
+  return largest.path;
+}
+
+// ...dans la section "playGame", juste avant le if (launchFile.endsWith(".exe")) { ... }
+async function trySpawnWithFallback(cmd, args, opts, onExit) {
+  return new Promise((resolve) => {
+    let proc = spawn(cmd, args, opts);
+    let exited = false;
+    let timer = setTimeout(() => {
+      if (!exited) {
+        // Only resolve with proc if it hasn't exited (still running)
+        proc.unref();
+        resolve(proc);
+      }
+    }, 10000); // 2 secondes : si le process tient, on considère que c'est bon
+
+    proc.on("exit", (code) => {
+      exited = true;
+      clearTimeout(timer);
+      // If the process exits (with any code) before the timeout, treat as failure
+      resolve(null);
+    });
+    proc.on("error", () => {
+      exited = true;
+      clearTimeout(timer);
+      resolve(null);
+    });
+  });
+}
