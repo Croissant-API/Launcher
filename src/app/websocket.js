@@ -418,34 +418,41 @@ export function setupWebSocket() {
 }
 
 /**
- * Cherche le plus gros fichier .exe dans un dossier (et ses sous-dossiers immédiats)
+ * Cherche le plus gros fichier .exe dans un dossier (récursif)
  * @param {string} dir
  * @returns {string|null} chemin du plus gros .exe ou null
  */
 function findLargestExe(dir) {
   let largest = { path: null, size: 0 };
-  const entries = fs.readdirSync(dir);
 
-  for (const entry of entries) {
-    const entryPath = path.join(dir, entry);
-    if (fs.statSync(entryPath).isFile() && entry.endsWith(".exe")) {
-      const size = fs.statSync(entryPath).size;
-      if (size > largest.size) {
-        largest = { path: entryPath, size };
+  function search(currentDir) {
+    let entries;
+    try {
+      entries = fs.readdirSync(currentDir);
+    } catch (e) {
+      return;
+    }
+    for (const entry of entries) {
+      // Ignore les fichiers/dossiers cachés
+      if (entry.startsWith('.')) continue;
+      const entryPath = path.join(currentDir, entry);
+      let stat;
+      try {
+        stat = fs.statSync(entryPath);
+      } catch (e) {
+        continue;
       }
-    } else if (fs.statSync(entryPath).isDirectory()) {
-      const subEntries = fs.readdirSync(entryPath);
-      for (const subEntry of subEntries) {
-        const subEntryPath = path.join(entryPath, subEntry);
-        if (fs.statSync(subEntryPath).isFile() && subEntry.endsWith(".exe")) {
-          const size = fs.statSync(subEntryPath).size;
-          if (size > largest.size) {
-            largest = { path: subEntryPath, size };
-          }
+      if (stat.isFile() && entry.endsWith(".exe")) {
+        if (stat.size > largest.size) {
+          largest = { path: entryPath, size: stat.size };
         }
+      } else if (stat.isDirectory()) {
+        search(entryPath);
       }
     }
   }
+
+  search(dir);
   return largest.path;
 }
 
