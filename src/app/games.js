@@ -3,7 +3,17 @@ import path from 'path';
 import simpleGit from 'simple-git';
 import dns from 'dns';
 
-const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
+let gamesDir;
+console.log("Initializing games directory...");
+console.log("Current platform:", process.platform);
+if (process.platform === 'linux') {
+  gamesDir = path.join(process.env.HOME, '.croissant-launcher', 'games');
+} else if (process.platform === 'darwin') {
+  gamesDir = path.join(process.env.HOME, 'Library', 'Application Support', 'Croissant-Launcher', 'games');
+} else { // Windows
+  gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
+}
+console.log("Games directory set to:", gamesDir);
 
 export const ensureGamesDir = () => {
   if (!fs.existsSync(gamesDir)) {

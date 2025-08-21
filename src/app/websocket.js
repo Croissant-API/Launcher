@@ -10,7 +10,14 @@ const RPC = require('discord-rpc');
 const now = new Date();
 const clientId = '1324530344900431923';
 const rpc = new RPC.Client({ transport: 'ipc' });
-const gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
+let gamesDir;
+if (process.platform === 'linux') {
+  gamesDir = path.join(process.env.HOME, '.croissant-launcher', 'games');
+} else if (process.platform === 'darwin') {
+  gamesDir = path.join(process.env.HOME, 'Library', 'Application Support', 'Croissant-Launcher', 'games');
+} else { // Windows
+  gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
+}
 
 let actualConnection = null;
 
