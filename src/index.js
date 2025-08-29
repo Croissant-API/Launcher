@@ -1,5 +1,5 @@
-// import { updateElectronApp } from 'update-electron-app';
-// updateElectronApp();
+import { updateElectronApp } from 'update-electron-app';
+updateElectronApp();
 
 import path from 'path';
 import ws from 'windows-shortcuts';

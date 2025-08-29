@@ -6,11 +6,8 @@ import { setupWebSocket } from './websocket.js';
 import { ensureGamesDir } from './games.js';
 import { ipcMain } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import open from 'open';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 import { devEnv } from './mainWindow.js';
 const ENDPOINT = devEnv ? "http://localhost:8580/" : "https://croissant-api.fr/";
 const PROTOCOL = 'croissant-launcher';

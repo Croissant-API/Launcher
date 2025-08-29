@@ -6,7 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const devEnv = false;
-const PORT_TO_SERVE = devEnv ? "http://localhost:8580/launcher/home" : "https://croissant-api.fr/launcher/home";
+const PORT_TO_SERVE = "https://croissant-api.fr/launcher/home"
+// const PORT_TO_SERVE = "http://localhost:3333/launcher/home"
 
 // Prevent second instance
 const gotTheLock = app.requestSingleInstanceLock();
