@@ -1,0 +1,23 @@
+{
+  "package": {
+    "productName": "croissant-launcher-poc",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "identifier": "fr.croissant.launcher",
+      "icon": [],
+      "resources": []
+    },
+    "allowlist": {
+      "all": true
+    },
+    "windows": [
+      {
+        "title": "Croissant Launcher POC",
+        "width": 800,
+        "height": 600
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Croissant Launcher POC</title>
+  </head>
+  <body>
+    <h1>Croissant Launcher POC</h1>
+    <button id="btn">List Games</button>
+    <pre id="out"></pre>
+
+    <script>
+      const btn = document.getElementById('btn');
+      const out = document.getElementById('out');
+      btn.addEventListener('click', async () => {
+        try {
+          const games = await window.__TAURI__.invoke('list_games');
+          out.textContent = JSON.stringify(games, null, 2);
+        } catch (e) {
+          out.textContent = 'Error: ' + e;
+        }
+      });
+    </script>
+  </body>
+</html>
