@@ -1,22 +1,13 @@
-import { app, shell } from 'electron';
-import { startServer } from './server.js';
-import { createMainWindow } from './mainWindow.js';
-import { createTray } from './tray.js';
-import { setupWebSocket } from './websocket.js';
-import { ensureGamesDir } from './games.js';
-import { ipcMain } from 'electron';
-import path from 'path';
-import open from 'open';
 
+// Neutralino.js migration
 import { devEnv } from './mainWindow.js';
 const ENDPOINT = devEnv ? "http://localhost:8580/" : "https://croissant-api.fr/";
 const PROTOCOL = 'croissant-launcher';
 const DISCORD_CLIENT_ID = '1324530344900431923';
 
-let mainWindow = null;
 let deeplinkToHandle = null;
 
-function handleDeeplink(url, win) {
+function handleDeeplink(url) {
   try {
     if (url.startsWith(`discord-${DISCORD_CLIENT_ID}://`)) {
       return;
@@ -35,10 +26,10 @@ function handleDeeplink(url, win) {
       if (joinSecret) {
         if (joinSecret.startsWith('join-lobby:lobbyId=')) {
           const lobbyId = joinSecret.replace('join-lobby:lobbyId=', '');
-          joinLobby(lobbyId, win);
+          joinLobby(lobbyId);
           return;
         } else {
-          joinLobby(joinSecret, win);
+          joinLobby(joinSecret);
           return;
         }
       }
@@ -46,114 +37,59 @@ function handleDeeplink(url, win) {
     }
     const parsed = new URL(cleanUrl);
     if (parsed.protocol !== `${PROTOCOL}:`) return;
-    if (!win) return;
     if (parsed.hostname === 'join-lobby') {
       const lobbyId = parsed.searchParams.get('lobbyId');
-      if (lobbyId) joinLobby(lobbyId, win);
+      if (lobbyId) joinLobby(lobbyId);
     } else if (parsed.hostname === 'set-token') {
       const token = parsed.searchParams.get('token');
-      if (token) loginToken(token, win);
+      if (token) loginToken(token);
     }
   } catch (e) {
     console.error('Invalid deeplink:', url, e);
   }
 }
 
-export function loginToken(token, win) {
-  win.webContents.send("set-token", token.toString());
-  win.show();
-  win.focus();
-  win.setAlwaysOnTop(true, 'screen');
-  setTimeout(() => win.setAlwaysOnTop(false), 1000);
+export function loginToken(token) {
+  Neutralino.events.emit('set-token', { token: token.toString() });
+  Neutralino.window.show();
+  Neutralino.window.focus();
+  Neutralino.window.setAlwaysOnTop(true);
+  setTimeout(() => Neutralino.window.setAlwaysOnTop(false), 1000);
 }
 
-export function joinLobby(lobbyId, win) {
-  win.webContents.send("join-lobby", lobbyId);
-  win.show();
-  win.focus();
-  win.setAlwaysOnTop(true, 'screen');
-  setTimeout(() => win.setAlwaysOnTop(false), 1000);
+export function joinLobby(lobbyId) {
+  Neutralino.events.emit('join-lobby', { lobbyId });
+  Neutralino.window.show();
+  Neutralino.window.focus();
+  Neutralino.window.setAlwaysOnTop(true);
+  setTimeout(() => Neutralino.window.setAlwaysOnTop(false), 1000);
 }
 
 export function startApp() {
-  ensureGamesDir();
-  if ((process.platform === 'win32' || process.platform === 'linux') && process.argv.length > 1) {
-    const deeplinkArg = process.argv.find(arg => 
-      arg.startsWith(`${PROTOCOL}://`) || 
+  // Remplacer ensureGamesDir par une commande Neutralino si besoin
+  Neutralino.init();
+
+  // Récupérer les arguments pour deeplink
+  Neutralino.os.getArgv().then(argv => {
+    const deeplinkArg = argv.find(arg =>
+      arg.startsWith(`${PROTOCOL}://`) ||
       arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`)
     );
     if (deeplinkArg) deeplinkToHandle = deeplinkArg;
-  }
-  const gotTheLock = app.requestSingleInstanceLock();
-  if (!gotTheLock) {
-    app.quit();
-    return;
-  }
-  app.on('second-instance', (event, argv) => {
-    const deeplinkArg = argv.find(arg => 
-      arg.startsWith(`${PROTOCOL}://`) || 
-      arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`)
-    );
-    if (deeplinkArg) {
-      if (mainWindow) handleDeeplink(deeplinkArg, mainWindow);
-      else deeplinkToHandle = deeplinkArg;
-    }
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.show();
-      mainWindow.focus();
-    }
-  });
-  app.on('open-url', (event, url) => {
-    event.preventDefault();
-    if (mainWindow) handleDeeplink(url, mainWindow);
-    else deeplinkToHandle = url;
-  });
-  app.whenReady().then(() => {
-    startServer();
-    mainWindow = createMainWindow();
-    createTray(mainWindow);
-    setupWebSocket();
-    if (process.defaultApp) {
-      app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
-      app.setAsDefaultProtocolClient(`discord-${DISCORD_CLIENT_ID}`, process.execPath, [path.resolve(process.argv[1])]);
-    } else {
-      app.setAsDefaultProtocolClient(PROTOCOL);
-      app.setAsDefaultProtocolClient(`discord-${DISCORD_CLIENT_ID}`);
-    }
     if (deeplinkToHandle) {
-      setTimeout(() => handleDeeplink(deeplinkToHandle, mainWindow), 500);
+      setTimeout(() => handleDeeplink(deeplinkToHandle), 500);
       deeplinkToHandle = null;
     }
   });
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
-  });
-  ipcMain.on('window-minimize', (event) => {
-    const win = event.sender.getOwnerBrowserWindow();
-    if (win) win.minimize();
-  });
-  ipcMain.on('window-maximize', (event) => {
-    const win = event.sender.getOwnerBrowserWindow();
-    if (win) {
-      if (win.isMaximized()) win.unmaximize();
-      else win.maximize();
-    }
-  });
-  ipcMain.on('window-close', (event) => {
-    const win = event.sender.getOwnerBrowserWindow();
-    if (win) win.close();
-  });
-  ipcMain.on('open-discord-login', () => {
-    open(ENDPOINT + "auth/discord");
-  });
-  ipcMain.on('open-google-login', () => {
-    open(ENDPOINT + "auth/google");
-  });
-  ipcMain.on('open-email-login', () => {
-    open(ENDPOINT + "transmitToken?from=launcher");
-  });
-  app.on('activate', () => {
-    if (mainWindow === null) mainWindow = createMainWindow();
-  });
+
+  // Gestion des événements fenêtre
+  Neutralino.events.on('window-minimize', () => Neutralino.window.minimize());
+  Neutralino.events.on('window-maximize', () => Neutralino.window.maximize());
+  Neutralino.events.on('window-close', () => Neutralino.app.exit());
+  Neutralino.events.on('open-discord-login', () => Neutralino.os.open(ENDPOINT + "auth/discord"));
+  Neutralino.events.on('open-google-login', () => Neutralino.os.open(ENDPOINT + "auth/google"));
+  Neutralino.events.on('open-email-login', () => Neutralino.os.open(ENDPOINT + "transmitToken?from=launcher"));
+
+  // Démarrer le serveur backend si besoin
+  // Neutralino.os.execCommand('node src/app/server.js');
 }

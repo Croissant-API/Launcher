@@ -1,26 +1,25 @@
-const { contextBridge, ipcRenderer } = require('electron');
-
-contextBridge.exposeInMainWorld('electron', {
+window.electron = {
     window: {
-        minimize: () => ipcRenderer.send('window-minimize'),
-        maximize: () => ipcRenderer.send('window-maximize'),
-        close: () => ipcRenderer.send('window-close'),
-        openDiscordLogin: () => ipcRenderer.send('open-discord-login'),
-        openGoogleLogin: () => ipcRenderer.send('open-google-login'),
-        openEmailLogin: () => ipcRenderer.send('open-email-login'),
+        minimize: () => Neutralino.events.emit('window-minimize'),
+        maximize: () => Neutralino.events.emit('window-maximize'),
+        close: () => Neutralino.events.emit('window-close'),
+        openDiscordLogin: () => Neutralino.events.emit('open-discord-login'),
+        openGoogleLogin: () => Neutralino.events.emit('open-google-login'),
+        openEmailLogin: () => Neutralino.events.emit('open-email-login'),
         onSetToken: (callback) => {
-            ipcRenderer.on('set-token', (event, token) => callback(token));
+            Neutralino.events.on('set-token', (evt) => callback(evt.detail.token));
         }
     }
-});
+};
 
-ipcRenderer.on('set-token', (event, token) => {
+Neutralino.events.on('set-token', (evt) => {
+    const token = evt.detail.token;
     document.cookie = `token=${token}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
     location.reload();
-    return;
-})
+});
 
-ipcRenderer.on('join-lobby', (event, lobbyId) => {
+Neutralino.events.on('join-lobby', (evt) => {
+    const lobbyId = evt.detail.lobbyId;
     fetch("https://croissant-api.fr/api/lobbies/" +lobbyId+ "/join", {
         method: "POST",
         headers: {
@@ -34,6 +33,5 @@ ipcRenderer.on('join-lobby', (event, lobbyId) => {
         } else {
             console.error("Failed to join lobby", response.statusText);
         }
-    })
-    return;
-})
+    });
+});

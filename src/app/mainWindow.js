@@ -1,55 +1,20 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+// Neutralino.js migration
 export const devEnv = false;
-const PORT_TO_SERVE = "https://croissant-api.fr/launcher/home"
+const PORT_TO_SERVE = "https://croissant-api.fr/launcher/home";
 // const PORT_TO_SERVE = "http://localhost:3333/launcher/home"
 
-// Prevent second instance
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-    app.quit();
-} else {
-    
-}
-
-let win;
-
 export function createMainWindow() {
-    win = new BrowserWindow({
-        width: 800,
-        height: 600,
-        frame: false,
-        titleBarStyle: 'hidden',
-        ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
-        autoHideMenuBar: true,
-        icon: path.join(__dirname, 'icon.png'), // Use your icon path
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            sandbox: false,
-            preload: path.join(__dirname, 'preload.js'),
-        }
+    Neutralino.window.setTitle("Croissant Launcher");
+    Neutralino.window.setSize({ width: 800, height: 600 });
+    Neutralino.window.maximize();
+    // Charger l'URL (dans Neutralino, c'est généralement un fichier local, mais ici on charge une URL distante)
+    window.location.href = PORT_TO_SERVE;
+
+    // Personnalisation de la barre de titre non disponible nativement, mais on peut styliser l'UI dans l'HTML/CSS
+
+    // Gestion de la fermeture : masquer la fenêtre au lieu de quitter
+    Neutralino.events.on('window-close', () => {
+        Neutralino.window.hide();
     });
-
-    win.maximize();
-    win.loadURL(PORT_TO_SERVE); // Adjust the URL as needed
-
-    win.setTitleBarOverlay({
-        color: "rgba(0, 0, 0, 0)",
-        symbolColor: "white",
-        height: 30,
-    });
-
-    // Hide window instead of closing
-    win.on('close', (event) => {
-        event.preventDefault();
-        win.hide();
-    });
-
-    return win;
 }
