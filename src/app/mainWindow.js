@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 export const devEnv = false;
 
-const PORT_TO_SERVE = 'http://localhost:8580/launcher/home';
+const PORT_TO_SERVE = 'https://croissant-api.fr/launcher/home';
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -50,3 +50,4 @@ export function createMainWindow() {
 
   return win;
 }
+
