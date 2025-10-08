@@ -25,8 +25,19 @@ function httpsRequest(url, options = {}, token) {
           return httpsRequest(res.headers.location, options, token).then(resolve).catch(reject);
         }
         if (res.statusCode !== 200 && res.statusCode !== 206) {
-          reject(new Error(`HTTP ${res.statusCode}`));
-          return;
+            if (res.statusCode === 500) {
+            let chunks = [];
+            res.on('data', chunk => chunks.push(chunk));
+            res.on('end', () => {
+              const body = Buffer.concat(chunks).toString();
+              reject(new Error(`HTTP 500: ${body}`));
+            });
+            return;
+            }
+            console.log(url);
+            console.log('HTTP Error:', res.statusCode, res);
+            reject(new Error(`HTTP ${res.statusCode}`));
+            return;
         }
         const chunks = [];
         res.on('data', chunk => chunks.push(chunk));
@@ -220,6 +231,39 @@ async function detect(id, token) {
   }
 }
 
+async function downloadFilesConcurrently(files, remoteZipUrl, token, localDir, cb) {
+  const concurrencyLimit = 5; // Nombre maximum de téléchargements simultanés
+  const totalBytes = files.reduce((sum, f) => sum + f.compressedSize, 0);
+  let downloadedBytes = 0;
+
+  const downloadQueue = files.slice(); // Copie de la liste des fichiers
+  const activeDownloads = new Set();
+
+  async function downloadNext() {
+    if (downloadQueue.length === 0) return;
+
+    const file = downloadQueue.shift();
+    const downloadPromise = (async () => {
+      const content = await downloadFileFromZip(remoteZipUrl, file, token);
+      const fullPath = path.join(localDir, file.name);
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, content);
+      downloadedBytes += file.compressedSize;
+      const percent = Math.round((downloadedBytes / totalBytes) * 100);
+      cb(percent);
+    })();
+
+    activeDownloads.add(downloadPromise);
+    downloadPromise.finally(() => activeDownloads.delete(downloadPromise));
+
+    await downloadPromise;
+    await downloadNext();
+  }
+
+  const initialDownloads = Array.from({ length: concurrencyLimit }, () => downloadNext());
+  await Promise.all(initialDownloads);
+}
+
 async function update(id, cb, token) {
   const localDir = path.join(gamesDir, id);
   if (!fs.existsSync(localDir)) {
@@ -263,18 +307,8 @@ async function update(id, cb, token) {
     cb(100);
     return;
   }
-  const totalBytes = toDownload.reduce((sum, f) => sum + f.compressedSize, 0);
-  let downloadedBytes = 0;
-  for (let i = 0; i < toDownload.length; i++) {
-    const file = toDownload[i];
-    const content = await downloadFileFromZip(remoteZipUrl, file, token);
-    const fullPath = path.join(localDir, file.name);
-    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, content);
-    downloadedBytes += file.compressedSize;
-    const percent = Math.round((downloadedBytes / totalBytes) * 100);
-    cb(percent);
-  }
+
+  await downloadFilesConcurrently(toDownload, remoteZipUrl, token, localDir, cb);
 }
 
 export { detect, update };
