@@ -1,11 +1,10 @@
-import { WebSocketServer } from "ws";
+import { spawn } from "child_process";
+import RPC from "discord-rpc";
 import fs from "fs";
 import path from "path";
-import simpleGit from "simple-git";
+import { WebSocketServer } from "ws";
 import { checkInstallationStatus } from "./games.js";
-import { spawn } from "child_process";
-import zip from "adm-zip";
-import RPC from "discord-rpc";
+import { detect, update } from "./smart-update.js";
 
 const now = new Date();
 const clientId = "1324530344900431923";
@@ -22,7 +21,7 @@ if (process.platform === "linux") {
     "games"
   );
 } else {
-  // Windows
+  
   gamesDir = path.join(process.env.APPDATA, "Croissant-Launcher", "games");
 }
 
@@ -64,42 +63,13 @@ export function setupWebSocket() {
       try {
         const data = JSON.parse(msg);
 
-        // Download game
+        
         if (data.action === "downloadGame") {
-          const { gameId, downloadUrl, token } = data;
-          const dest = path.join(gamesDir, gameId);
-          if (!fs.existsSync(dest)) {
-            // if (downloadUrl.endsWith('.zip')) {
-            const url = new URL("https://croissant-api.fr" + downloadUrl);
-            console.log(url.href);
-            const response = await fetch(url.href, {
-              headers: {
-                "User-Agent": "Croissant-Launcher",
-                Accept: "application/zip",
-                "Content-Type": "application/zip",
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            if (!response.ok) {
-              ws.send(
-                JSON.stringify({
-                  action: "error",
-                  message: "Failed to download game",
-                })
-              );
-              return;
-            }
-            const total = Number(response.headers.get("content-length")) || 0;
-            let received = 0;
-            const chunks = [];
-            const reader = response.body.getReader();
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              chunks.push(value);
-              received += value.length;
-              if (total > 0) {
-                const percent = Math.round((received / total) * 100);
+          const { gameId } = data;
+          try {
+            const needs = await detect(gameId);
+            if (needs) {
+              await update(gameId, (percent) => {
                 ws.send(
                   JSON.stringify({
                     action: "downloadProgress",
@@ -107,26 +77,17 @@ export function setupWebSocket() {
                     percent,
                   })
                 );
-              }
+              });
+              ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
+            } else {
+              ws.send(JSON.stringify({ action: "alreadyInstalled", gameId }));
             }
-            fs.mkdirSync(dest, { recursive: true });
-            const buffer = Buffer.concat(chunks);
-            const zipFilePath = path.join(dest, "game.zip");
-            fs.writeFileSync(zipFilePath, buffer);
-            const zipInstance = new zip(zipFilePath);
-            zipInstance.extractAllTo(dest, true);
-            fs.unlinkSync(zipFilePath);
-            ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
-            // } else {
-            //     await simpleGit().clone(downloadUrl, dest);
-            //     ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
-            // }
-          } else {
-            ws.send(JSON.stringify({ action: "alreadyInstalled", gameId }));
+          } catch (e) {
+            ws.send(JSON.stringify({ action: "error", message: e.message }));
           }
         }
 
-        // Play game
+        
         if (data.action === "playGame") {
           const { gameId, playerId, verificationKey } = data;
           ws.send(JSON.stringify({ action: "playing", gameId }));
@@ -137,13 +98,13 @@ export function setupWebSocket() {
 
           const gamePath = path.join(gamesDir, gameId);
 
-          // Correction des permissions sur Linux/macOS
+          
           if (process.platform === "linux" || process.platform === "darwin") {
             try {
               const { spawnSync } = require("child_process");
               spawnSync("chown", ["-R", process.env.USER, gamePath]);
             } catch (e) {
-              // Ignore les erreurs de chown
+              
             }
           }
 
@@ -152,20 +113,20 @@ export function setupWebSocket() {
           const files = fs.readdirSync(gamePath);
           for (const candidate of candidates) {
             if (candidate === ".exe") {
-              // Utilise le plus gros .exe trouvé
+              
               const exePath = findLargestExe(gamePath);
               if (exePath) {
                 launchFile = exePath;
                 break;
               }
             } else {
-              // Check for candidate file in gamePath
+              
               const filePath = path.join(gamePath, candidate);
               if (fs.existsSync(filePath)) {
                 launchFile = filePath;
                 break;
               }
-              // Check for candidate file in immediate subdirectories
+              
               for (const dir of files) {
                 const subPath = path.join(gamePath, dir);
                 if (fs.statSync(subPath).isDirectory()) {
@@ -184,7 +145,7 @@ export function setupWebSocket() {
             const onExit = () => {
               ws.send(JSON.stringify({ action: "closeGame", gameId }));
             };
-            // ...dans la section playGame, remplace le bloc de lancement .exe par :
+            
             if (launchFile.endsWith(".exe")) {
               let proc;
               const exeArgs = [
@@ -205,10 +166,10 @@ export function setupWebSocket() {
                 args = exeArgs.slice(1);
               }
 
-              // Essaye avec les arguments croissant
+              
               proc = await trySpawnWithFallback(cmd, args, opts, onExit);
 
-              // Si échec, relance sans les arguments croissant
+              
               if (!proc) {
                 if (
                   process.platform === "linux" ||
@@ -259,20 +220,20 @@ export function setupWebSocket() {
           }
         }
 
-        // Close game
+        
         if (data.action === "closeGame") {
           const { gameId } = data;
           ws.send(JSON.stringify({ action: "closed", gameId }));
         }
 
-        // Check installation status
+        
         if (data.action === "checkInstallationStatus") {
           const { gameId } = data;
           const status = await checkInstallationStatus(gameId);
           ws.send(JSON.stringify({ action: "status", gameId, status }));
         }
 
-        // List games
+        
         if (data.action === "listGames") {
           const games = fs.readdirSync(gamesDir).map((gameId) => ({
             gameId,
@@ -283,7 +244,7 @@ export function setupWebSocket() {
           ws.send(JSON.stringify({ action: "gamesList", games }));
         }
 
-        // Delete game
+        
         if (data.action === "deleteGame") {
           const { gameId } = data;
           const dest = path.join(gamesDir, gameId);
@@ -295,19 +256,36 @@ export function setupWebSocket() {
           }
         }
 
-        // Update game
+        
         if (data.action === "updateGame") {
           const { gameId } = data;
           const dest = path.join(gamesDir, gameId);
-          if (fs.existsSync(dest)) {
-            await simpleGit(dest).pull();
-            ws.send(JSON.stringify({ action: "updateComplete", gameId }));
-          } else {
+          if (!fs.existsSync(dest)) {
             ws.send(JSON.stringify({ action: "notFound", gameId }));
+            return;
+          }
+          try {
+            const needs = await detect(gameId);
+            if (needs) {
+              await update(gameId, (percent) => {
+                ws.send(
+                  JSON.stringify({
+                    action: "updateProgress",
+                    gameId,
+                    percent,
+                  })
+                );
+              });
+              ws.send(JSON.stringify({ action: "updateComplete", gameId }));
+            } else {
+              ws.send(JSON.stringify({ action: "alreadyUpToDate", gameId }));
+            }
+          } catch (e) {
+            ws.send(JSON.stringify({ action: "error", message: e.message }));
           }
         }
 
-        // Get game info
+        
         if (data.action === "getGameInfo") {
           const { gameId } = data;
           const dest = path.join(gamesDir, gameId);
@@ -321,7 +299,7 @@ export function setupWebSocket() {
           }
         }
 
-        // Get game icon
+        
         if (data.action === "getGameIcon") {
           const { gameId } = data;
           const iconPath = path.join(gamesDir, gameId, "icon.png");
@@ -339,7 +317,7 @@ export function setupWebSocket() {
           }
         }
 
-        // Get game description
+        
         if (data.action === "getGameDescription") {
           const { gameId } = data;
           const descPath = path.join(gamesDir, gameId, "description.txt");
@@ -353,7 +331,7 @@ export function setupWebSocket() {
           }
         }
 
-        // Get game version
+        
         if (data.action === "getGameVersion") {
           const { gameId } = data;
           const versionPath = path.join(gamesDir, gameId, "version.txt");
@@ -365,7 +343,7 @@ export function setupWebSocket() {
           }
         }
 
-        // Get game size
+        
         if (data.action === "getGameSize") {
           const { gameId } = data;
           const sizePath = path.join(gamesDir, gameId);
@@ -379,7 +357,7 @@ export function setupWebSocket() {
           }
         }
 
-        // Get game state
+        
         if (data.action === "getGameState") {
           const { gameId } = data;
           const state = fs.existsSync(path.join(gamesDir, gameId))
@@ -388,7 +366,7 @@ export function setupWebSocket() {
           ws.send(JSON.stringify({ action: "gameState", gameId, state }));
         }
 
-        // Get game path
+        
         if (data.action === "getGamePath") {
           const { gameId } = data;
           const gamePath = path.join(gamesDir, gameId);
@@ -402,7 +380,7 @@ export function setupWebSocket() {
         }
 
         if (data.action === "setActivity") {
-          // console.log("Setting activity:", data.activity);
+          
           rpc.setActivity({
             ...data.activity,
             partySize: parseInt(data.activity.partySize || 0),
@@ -417,11 +395,6 @@ export function setupWebSocket() {
   return wss;
 }
 
-/**
- * Cherche le plus gros fichier .exe dans un dossier (récursif)
- * @param {string} dir
- * @returns {string|null} chemin du plus gros .exe ou null
- */
 function findLargestExe(dir) {
   let largest = { path: null, size: 0 };
 
@@ -433,7 +406,7 @@ function findLargestExe(dir) {
       return;
     }
     for (const entry of entries) {
-      // Ignore les fichiers/dossiers cachés
+      
       if (entry.startsWith('.')) continue;
       const entryPath = path.join(currentDir, entry);
       let stat;
@@ -456,23 +429,22 @@ function findLargestExe(dir) {
   return largest.path;
 }
 
-// ...dans la section "playGame", juste avant le if (launchFile.endsWith(".exe")) { ... }
 async function trySpawnWithFallback(cmd, args, opts, onExit) {
   return new Promise((resolve) => {
     let proc = spawn(cmd, args, opts);
     let exited = false;
     let timer = setTimeout(() => {
       if (!exited) {
-        // Only resolve with proc if it hasn't exited (still running)
+        
         proc.unref();
         resolve(proc);
       }
-    }, 10000); // 2 secondes : si le process tient, on considère que c'est bon
+    }, 10000); 
 
     proc.on("exit", (code) => {
       exited = true;
       clearTimeout(timer);
-      // If the process exits (with any code) before the timeout, treat as failure
+      
       resolve(null);
     });
     proc.on("error", () => {
@@ -482,3 +454,5 @@ async function trySpawnWithFallback(cmd, args, opts, onExit) {
     });
   });
 }
+
+
