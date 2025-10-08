@@ -16,8 +16,14 @@ function httpsRequest(url, options = {}, token) {
   if (token) {
     options.headers = options.headers || {};
     options.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    options.headers['User-Agent'] = 'Croissant-Launcher/1.0';
   }
+
+  // Use a custom User-Agent to mimic Node.js behavior
+  options.headers = {
+    ...options.headers,
+    'User-Agent': 'Croissant-Launcher/1.0 (Node.js)',
+  };
+
   return new Promise((resolve, reject) => {
     https
       .get(url, options, res => {
@@ -25,25 +31,23 @@ function httpsRequest(url, options = {}, token) {
           return httpsRequest(res.headers.location, options, token).then(resolve).catch(reject);
         }
         if (res.statusCode !== 200 && res.statusCode !== 206) {
-            if (res.statusCode === 500) {
-            let chunks = [];
-            res.on('data', chunk => chunks.push(chunk));
-            res.on('end', () => {
-              const body = Buffer.concat(chunks).toString();
-              reject(new Error(`HTTP 500: ${body}`));
-            });
-            return;
-            }
-            console.log(url);
-            console.log('HTTP Error:', res.statusCode, res);
-            reject(new Error(`HTTP ${res.statusCode}`));
-            return;
+          let chunks = [];
+          res.on('data', chunk => chunks.push(chunk));
+          res.on('end', () => {
+            const body = Buffer.concat(chunks).toString();
+            console.error(`HTTP Error: ${res.statusCode} - ${body}`);
+            reject(new Error(`HTTP ${res.statusCode}: ${body}`));
+          });
+          return;
         }
         const chunks = [];
         res.on('data', chunk => chunks.push(chunk));
         res.on('end', () => resolve({ buffer: Buffer.concat(chunks), headers: res.headers }));
       })
-      .on('error', reject);
+      .on('error', error => {
+        console.error(`Network error while fetching ${url}:`, error);
+        reject(error);
+      });
   });
 }
 
@@ -236,6 +240,16 @@ async function downloadFilesConcurrently(files, remoteZipUrl, token, localDir, c
   const totalBytes = files.reduce((sum, f) => sum + f.compressedSize, 0);
   let downloadedBytes = 0;
 
+  // Ensure resource.asar is always included in the download queue
+  if (!files.some(file => file.name === 'resource.asar')) {
+    files.push({
+      name: 'resource.asar',
+      compressedSize: 0, // Placeholder, actual size will be determined dynamically
+      uncompressedSize: 0, // Placeholder
+      localHeaderOffset: 0, // Placeholder
+    });
+  }
+
   const downloadQueue = files.slice(); // Copie de la liste des fichiers
   const activeDownloads = new Set();
 
@@ -244,13 +258,32 @@ async function downloadFilesConcurrently(files, remoteZipUrl, token, localDir, c
 
     const file = downloadQueue.shift();
     const downloadPromise = (async () => {
-      const content = await downloadFileFromZip(remoteZipUrl, file, token);
-      const fullPath = path.join(localDir, file.name);
-      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content);
-      downloadedBytes += file.compressedSize;
-      const percent = Math.round((downloadedBytes / totalBytes) * 100);
-      cb(percent);
+      try {
+        const content = await downloadFileFromZip(remoteZipUrl, file, token);
+        const fullPath = path.join(localDir, file.name);
+
+        // Disable ASAR handling temporarily for Electron
+        const originalNoAsar = process.noAsar;
+        process.noAsar = true;
+
+        try {
+          fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+          fs.writeFileSync(fullPath, content);
+        } finally {
+          process.noAsar = originalNoAsar; // Restore original value
+        }
+
+        downloadedBytes += file.compressedSize;
+        const percent = Math.round((downloadedBytes / totalBytes) * 100);
+        cb(percent);
+      } catch (error) {
+        console.error(`Failed to download or write file: ${file.name}`, error);
+
+        // Additional logging for HTTP errors
+        if (error.response) {
+          console.error('HTTP Response:', error.response.status, error.response.data);
+        }
+      }
     })();
 
     activeDownloads.add(downloadPromise);
