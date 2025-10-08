@@ -2,6 +2,7 @@ import fs from 'fs';
 import https from 'https';
 import path from 'path';
 import zlib from 'zlib';
+import os from 'os';
 
 let gamesDir;
 if (process.platform === 'linux') {
@@ -117,8 +118,55 @@ function parseZipCentralDirectory(buffer) {
   return files;
 }
 
+const CONTENT_LENGTH_FILE = path.join(gamesDir, 'content-lengths.json');
+
+function saveContentLength(url, contentLength) {
+  let contentLengths = {};
+  if (fs.existsSync(CONTENT_LENGTH_FILE)) {
+    try {
+      contentLengths = JSON.parse(fs.readFileSync(CONTENT_LENGTH_FILE, 'utf8'));
+    } catch (error) {
+      console.error('Failed to parse content-length file:', error);
+    }
+  }
+
+  const previousEntry = contentLengths[url];
+  const isUpdatedSinceLastCheck = previousEntry ? previousEntry.contentLength === contentLength : false;
+
+  contentLengths[url] = {
+    contentLength,
+    isUpdatedSinceLastCheck,
+  };
+
+  console.log('Saving content length:', CONTENT_LENGTH_FILE);
+  fs.writeFileSync(CONTENT_LENGTH_FILE, JSON.stringify(contentLengths, null, 2));
+}
+
+async function fetchAndCompareContentLength(url, token) {
+  const headRes = await httpsRequest(url, { method: 'HEAD', headers: { 'X-Request-Arbo': 'true' } }, token);
+  const newContentLength = parseInt(headRes.headers['content-length'] || '0');
+
+  let contentLengths = {};
+  if (fs.existsSync(CONTENT_LENGTH_FILE)) {
+    try {
+      contentLengths = JSON.parse(fs.readFileSync(CONTENT_LENGTH_FILE, 'utf8'));
+    } catch (error) {
+      console.error('Failed to parse content-length file:', error);
+    }
+  }
+
+  const previousEntry = contentLengths[url];
+  const hasChanged = !previousEntry || previousEntry.contentLength !== newContentLength;
+
+  if (hasChanged) {
+    saveContentLength(url, newContentLength);
+  }
+
+  return { hasChanged, newContentLength };
+}
+
 async function getRemoteZipStructure(url, token) {
-  const headRes = await httpsRequest(url, { method: 'HEAD', headers: { 'X-Request-Arbo': 'true' } }, token); // Add custom header for arbo request
+  const headRes = await httpsRequest(url, { method: 'HEAD', headers: { 'X-Request-Arbo': 'true' } }, token);
   const totalSize = parseInt(headRes.headers['content-length'] || '0');
 
   if (!headRes.headers['accept-ranges']) {
@@ -131,7 +179,7 @@ async function getRemoteZipStructure(url, token) {
   const { buffer } = await httpsRequest(
     url,
     {
-      headers: { Range: `bytes=${rangeStart}-${totalSize - 1}`, 'X-Request-Arbo': 'true' }, // Add custom header for arbo request
+      headers: { Range: `bytes=${rangeStart}-${totalSize - 1}`, 'X-Request-Arbo': 'true' },
     },
     token
   );
@@ -190,60 +238,34 @@ async function downloadFileFromZip(url, fileInfo, token) {
   }
 }
 
-let fileStructureCache = new Map();
-let fileStructureTimestamps = new Map();
-const DETECT_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 async function detect(id, token) {
-  const now = Date.now();
-  if (fileStructureCache.has(id) && now - fileStructureTimestamps.get(id) < DETECT_CACHE_DURATION) {
-    return fileStructureCache.get(id).needsUpdate;
-  }
-
+  const remoteZipUrl = 'https://croissant-api.fr/api/games/' + id + '/download';
   const localDir = path.join(gamesDir, id);
+
+  // Check if the local directory for the game exists
   if (!fs.existsSync(localDir)) {
-    fileStructureCache.set(id, { needsUpdate: true });
-    fileStructureTimestamps.set(id, now);
-    return true;
+    console.error(`Local directory for game ${id} does not exist. Reinstallation required.`);
+    return false; // Cannot update if the game is not installed
   }
 
-  try {
-    if (!token) {
-      throw new Error('Token is required for detection');
+  let contentLengths = {};
+  if (fs.existsSync(CONTENT_LENGTH_FILE)) {
+    try {
+      contentLengths = JSON.parse(fs.readFileSync(CONTENT_LENGTH_FILE, 'utf8'));
+    } catch (error) {
+      console.error('Failed to parse content-length file:', error);
     }
+  }
 
-    const remoteZipUrl = 'https://croissant-api.fr/api/games/' + id + '/download';
-    let localFiles = listLocalFiles(localDir);
-
-    if (remoteZipUrl.includes('github.com')) {
-      for (const [key] of localFiles) {
-        if (key.startsWith('.git/')) {
-          localFiles.delete(key);
-        }
-      }
-    }
-
-    const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl, token);
-    let needUpdate = false;
-    for (const remoteFile of remoteFiles) {
-      if (remoteFile.name.endsWith('/')) continue;
-      const localFile = localFiles.get(remoteFile.name);
-      if (!localFile || localFile.size !== remoteFile.uncompressedSize) {
-        needUpdate = true;
-        break;
-      }
-      if (localFile) localFiles.delete(remoteFile.name);
-    }
-    if (localFiles.size > 0) {
-      needUpdate = true;
-    }
-
-    fileStructureCache.set(id, { needsUpdate: needUpdate });
-    fileStructureTimestamps.set(id, now);
-    return needUpdate;
-  } catch (e) {
+  const headRes = await httpsRequest(remoteZipUrl, { method: 'HEAD', headers: { 'X-Request-Arbo': 'true' } }, token);
+  const newContentLength = parseInt(headRes.headers['content-length'] || '0');
+  console.log('Fetched content length:', newContentLength);
+  const entry = contentLengths[remoteZipUrl];
+  if (!contentLengths[remoteZipUrl] || contentLengths[remoteZipUrl].contentLength !== newContentLength) {
+    saveContentLength(remoteZipUrl, newContentLength);
     return false;
   }
+  return !entry.isUpdatedSinceLastCheck;
 }
 
 async function downloadFilesConcurrently(files, remoteZipUrl, token, localDir, cb) {
@@ -289,11 +311,6 @@ async function downloadFilesConcurrently(files, remoteZipUrl, token, localDir, c
         cb(percent);
       } catch (error) {
         console.error(`Failed to download or write file: ${file.name}`, error);
-
-        // Additional logging for HTTP errors
-        if (error.response) {
-          console.error('HTTP Response:', error.response.status, error.response.data);
-        }
       }
     })();
 
@@ -306,6 +323,10 @@ async function downloadFilesConcurrently(files, remoteZipUrl, token, localDir, c
 
   const initialDownloads = Array.from({ length: concurrencyLimit }, () => downloadNext());
   await Promise.all(initialDownloads);
+
+  // Update content-length after successful download
+  const { newContentLength } = await fetchAndCompareContentLength(remoteZipUrl, token);
+  updateContentLength(remoteZipUrl, newContentLength);
 }
 
 async function update(id, cb, token) {
@@ -353,6 +374,24 @@ async function update(id, cb, token) {
   }
 
   await downloadFilesConcurrently(toDownload, remoteZipUrl, token, localDir, cb);
+}
+
+function updateContentLength(url, newContentLength) {
+  let contentLengths = {};
+  if (fs.existsSync(CONTENT_LENGTH_FILE)) {
+    try {
+      contentLengths = JSON.parse(fs.readFileSync(CONTENT_LENGTH_FILE, 'utf8'));
+    } catch (error) {
+      console.error('Failed to parse content-length file:', error);
+    }
+  }
+
+  contentLengths[url] = {
+    contentLength: newContentLength,
+    isUpdatedSinceLastCheck: true,
+  };
+
+  fs.writeFileSync(CONTENT_LENGTH_FILE, JSON.stringify(contentLengths, null, 2));
 }
 
 export { detect, update };

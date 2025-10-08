@@ -65,7 +65,7 @@ export function setupWebSocket() {
           const { gameId, token } = data;
           try {
             const needs = await detect(gameId, token);
-            if (needs) {
+            if (!needs) {
               await update(
                 gameId,
                 percent => {
@@ -242,9 +242,29 @@ export function setupWebSocket() {
         }
 
         if (data.action === 'checkInstallationStatus') {
-          const { gameId } = data;
-          const status = await checkInstallationStatus(gameId, data.token);
-          ws.send(JSON.stringify({ action: 'status', gameId, status }));
+          const { gameId, token } = data;
+          const localDir = path.join(gamesDir, gameId);
+
+          if (!fs.existsSync(localDir)) {
+            // Send not_installed if the game directory does not exist
+            actualConnection.send(
+              JSON.stringify({
+                action: 'status',
+                gameId,
+                status: 'not_installed',
+              })
+            );
+            return;
+          }
+
+          const status = await checkInstallationStatus(gameId, token);
+          actualConnection.send(
+            JSON.stringify({
+              action: 'status',
+              gameId,
+              status,
+            })
+          );
         }
 
         if (data.action === 'listGames') {
