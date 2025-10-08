@@ -157,7 +157,13 @@ export function setupWebSocket() {
               }
 
               proc = await trySpawnWithFallback(cmd, args, opts, onExit);
-
+              addLaunchedGame(gameId);
+              procs.push({ gameId, proc, pid: proc.pid }); // Store the PID
+              console.log(`Process launched for gameId: ${gameId}, PID: ${proc.pid}`); // Log process details
+              proc.on('exit', () => {
+                removeLaunchedGame(gameId);
+                onExit();
+              });
               if (!proc) {
                 if (process.platform === 'linux' || process.platform === 'darwin') {
                   proc = spawn('wine', [launchFile], { ...opts, detached: false });
@@ -178,16 +184,6 @@ export function setupWebSocket() {
               proc.unref();
               proc.on('exit', onExit);
             }
-            if (proc) {
-              addLaunchedGame(gameId);
-              procs.push({ gameId, proc, pid: proc.pid }); // Store the PID
-              console.log(`Process launched for gameId: ${gameId}, PID: ${proc.pid}`); // Log process details
-              console.log('Updated processes list:', procs); // Log the updated procs array
-              proc.on('exit', () => {
-                removeLaunchedGame(gameId);
-                onExit();
-              });
-            }
           } else {
             ws.send(
               JSON.stringify({
@@ -207,17 +203,16 @@ export function setupWebSocket() {
         if (data.action === 'stopGame') {
           const { gameId } = data;
           console.log(`Attempting to stop game with gameId: ${gameId}`);
-          console.log('Current processes:', procs); // Log the current state of procs
 
           const gameProc = procs.find(p => p.gameId === gameId);
           if (gameProc) {
             const pid = gameProc.pid; // Retrieve the stored PID
             if (pid) {
               console.log(`Found process with PID: ${pid} for gameId: ${gameId}`);
-              const { spawn } = require('child_process');
               const cmd = process.platform === 'win32' ? 'taskkill' : 'kill';
-              const args = process.platform === 'win32' ? ['/PID', pid, '/F'] : ['-9', pid];
+              const args = process.platform === 'win32' ? ['/PID', pid] : ['-9', pid];
 
+              console.log(`Executing command: ${cmd} ${args.join(' ')}`);
               const killProc = spawn(cmd, args);
 
               killProc.on('close', code => {
@@ -447,7 +442,7 @@ async function trySpawnWithFallback(cmd, args, opts, onExit) {
         proc.unref();
         resolve(proc);
       }
-    }, 10000);
+    }, 4000);
 
     proc.on('exit', code => {
       exited = true;
