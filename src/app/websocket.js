@@ -19,6 +19,7 @@ if (process.platform === 'linux') {
 }
 
 let actualConnection = null;
+let procs = [];
 
 rpc.login({ clientId }).catch(console.error);
 rpc.on('ready', () => {
@@ -133,12 +134,13 @@ export function setupWebSocket() {
             let proc;
             const onExit = () => {
               ws.send(JSON.stringify({ action: 'closeGame', gameId }));
+              procs = procs.filter(p => p.gameId !== gameId);
             };
 
             if (launchFile.endsWith('.exe')) {
               let proc;
               const exeArgs = [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`];
-              const opts = { cwd: gamePath, detached: true, stdio: 'ignore' };
+              const opts = { cwd: gamePath, detached: false, stdio: 'ignore' }; // Ensure detached is false
               let cmd, args;
               if (process.platform === 'linux' || process.platform === 'darwin') {
                 cmd = 'wine';
@@ -152,9 +154,9 @@ export function setupWebSocket() {
 
               if (!proc) {
                 if (process.platform === 'linux' || process.platform === 'darwin') {
-                  proc = spawn('wine', [launchFile], opts);
+                  proc = spawn('wine', [launchFile], { ...opts, detached: false });
                 } else {
-                  proc = spawn(launchFile, [], opts);
+                  proc = spawn(launchFile, [], { ...opts, detached: false });
                 }
                 proc.unref();
                 proc.on('exit', onExit);
@@ -168,6 +170,11 @@ export function setupWebSocket() {
             } else if (launchFile.endsWith('.ts')) {
               proc = spawn('ts-node', [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`], { cwd: gamePath, detached: true, stdio: 'ignore' });
               proc.unref();
+              proc.on('exit', onExit);
+            }
+            if (proc) {
+              console.log(`Launched process PID: ${proc.pid} for gameId: ${gameId}`); // Log the PID of the launched process
+              procs.push({ gameId, proc });
               proc.on('exit', onExit);
             }
           } else {
@@ -184,6 +191,27 @@ export function setupWebSocket() {
         if (data.action === 'closeGame') {
           const { gameId } = data;
           ws.send(JSON.stringify({ action: 'closed', gameId }));
+        }
+
+        if (data.action === 'stopGame') {
+          const { gameId } = data;
+          const gameProc = procs.find(p => p.gameId === gameId);
+          if (gameProc) {
+            const procName = path.basename(gameProc.proc.spawnfile); // Get the executable name
+            const { exec } = require('child_process');
+            exec(`taskkill /f /im ${procName}`, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`Error stopping process: ${error.message}`);
+                ws.send(JSON.stringify({ action: 'error', message: `Failed to stop game ${gameId}` }));
+                return;
+              }
+              console.log(`Stopped process for gameId: ${gameId}`);
+              procs = procs.filter(p => p.gameId !== gameId);
+              ws.send(JSON.stringify({ action: 'stopped', gameId }));
+            });
+          } else {
+            ws.send(JSON.stringify({ action: 'error', message: 'No running process found for game ' + gameId }));
+          }
         }
 
         if (data.action === 'checkInstallationStatus') {
