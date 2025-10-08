@@ -113,21 +113,24 @@ async function getRemoteZipStructure(url, token) {
   const chunkSize = Math.min(262144, totalSize);
   const rangeStart = totalSize - chunkSize;
 
-  const { buffer } = await httpsRequest(url, {
-    headers: { Range: `bytes=${rangeStart}-${totalSize - 1}` },
-  }, token);
+  const { buffer } = await httpsRequest(
+    url,
+    {
+      headers: { Range: `bytes=${rangeStart}-${totalSize - 1}` },
+    },
+    token
+  );
 
   let files = parseZipCentralDirectory(buffer);
 
-  
   if (url.includes('github.com') && url.includes('/archive/refs/heads/')) {
     const parts = url.split('/');
     const repo = parts[4];
-    const branch = parts[7].split('.')[0]; 
+    const branch = parts[7].split('.')[0];
     const prefix = `${repo}-${branch}/`;
     files = files.map(f => ({
       ...f,
-      name: f.name.startsWith(prefix) ? f.name.slice(prefix.length) : f.name
+      name: f.name.startsWith(prefix) ? f.name.slice(prefix.length) : f.name,
     }));
   }
 
@@ -138,9 +141,13 @@ async function downloadFileFromZip(url, fileInfo, token) {
   const start = fileInfo.localHeaderOffset;
   const end = start + 30 + 1024;
 
-  const { buffer: headerBuf } = await httpsRequest(url, {
-    headers: { Range: `bytes=${start}-${end}` },
-  }, token);
+  const { buffer: headerBuf } = await httpsRequest(
+    url,
+    {
+      headers: { Range: `bytes=${start}-${end}` },
+    },
+    token
+  );
 
   const fileNameLength = headerBuf.readUInt16LE(26);
   const extraFieldLength = headerBuf.readUInt16LE(28);
@@ -149,9 +156,13 @@ async function downloadFileFromZip(url, fileInfo, token) {
   const actualStart = start + dataStart;
   const actualEnd = actualStart + fileInfo.compressedSize - 1;
 
-  const { buffer: dataBuf } = await httpsRequest(url, {
-    headers: { Range: `bytes=${actualStart}-${actualEnd}` },
-  }, token);
+  const { buffer: dataBuf } = await httpsRequest(
+    url,
+    {
+      headers: { Range: `bytes=${actualStart}-${actualEnd}` },
+    },
+    token
+  );
 
   const compressionMethod = headerBuf.readUInt16LE(8);
 
@@ -168,14 +179,13 @@ async function detect(id, token) {
   const localDir = path.join(gamesDir, id);
   if (!fs.existsSync(localDir)) return true;
   try {
-
     if (!token) {
       throw new Error('Token is required for detection');
     }
 
     const remoteZipUrl = 'https://croissant-api.fr/api/games/' + id + '/download';
     let localFiles = listLocalFiles(localDir);
-    
+
     if (remoteZipUrl.includes('github.com')) {
       let gitCount = 0;
       for (const [key] of localFiles) {
@@ -185,7 +195,7 @@ async function detect(id, token) {
         }
       }
     }
-    
+
     const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl, token);
     let needUpdate = false;
     for (const remoteFile of remoteFiles) {
@@ -217,8 +227,7 @@ async function update(id, cb, token) {
   }
   const remoteZipUrl = 'https://croissant-api.fr/api/games/' + id + '/download';
   let localFiles = listLocalFiles(localDir);
-  
-  
+
   if (remoteZipUrl.includes('github.com')) {
     for (const [key] of localFiles) {
       if (key.startsWith('.git/')) {
@@ -226,7 +235,7 @@ async function update(id, cb, token) {
       }
     }
   }
-  
+
   const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl, token);
   const toDownload = [];
   const toDelete = [];
@@ -269,5 +278,3 @@ async function update(id, cb, token) {
 }
 
 export { detect, update };
-
-

@@ -8,7 +8,7 @@ import { createTray } from './tray.js';
 import { setupWebSocket } from './websocket.js';
 
 import { devEnv } from './mainWindow.js';
-const ENDPOINT = devEnv ? "http://localhost:8580/" : "https://croissant-api.fr/";
+const ENDPOINT = devEnv ? 'http://localhost:8580/' : 'https://croissant-api.fr/';
 const PROTOCOL = 'croissant-launcher';
 const DISCORD_CLIENT_ID = '1324530344900431923';
 
@@ -59,7 +59,7 @@ function handleDeeplink(url, win) {
 }
 
 export function loginToken(token, win) {
-  win.webContents.send("set-token", token.toString());
+  win.webContents.send('set-token', token.toString());
   win.show();
   win.focus();
   win.setAlwaysOnTop(true, 'screen');
@@ -67,7 +67,7 @@ export function loginToken(token, win) {
 }
 
 export function joinLobby(lobbyId, win) {
-  win.webContents.send("join-lobby", lobbyId);
+  win.webContents.send('join-lobby', lobbyId);
   win.show();
   win.focus();
   win.setAlwaysOnTop(true, 'screen');
@@ -77,10 +77,7 @@ export function joinLobby(lobbyId, win) {
 export function startApp() {
   ensureGamesDir();
   if ((process.platform === 'win32' || process.platform === 'linux') && process.argv.length > 1) {
-    const deeplinkArg = process.argv.find(arg => 
-      arg.startsWith(`${PROTOCOL}://`) || 
-      arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`)
-    );
+    const deeplinkArg = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`) || arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`));
     if (deeplinkArg) deeplinkToHandle = deeplinkArg;
   }
   const gotTheLock = app.requestSingleInstanceLock();
@@ -89,10 +86,7 @@ export function startApp() {
     return;
   }
   app.on('second-instance', (event, argv) => {
-    const deeplinkArg = argv.find(arg => 
-      arg.startsWith(`${PROTOCOL}://`) || 
-      arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`)
-    );
+    const deeplinkArg = argv.find(arg => arg.startsWith(`${PROTOCOL}://`) || arg.startsWith(`discord-${DISCORD_CLIENT_ID}://`));
     if (deeplinkArg) {
       if (mainWindow) handleDeeplink(deeplinkArg, mainWindow);
       else deeplinkToHandle = deeplinkArg;
@@ -128,29 +122,29 @@ export function startApp() {
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
   });
-  ipcMain.on('window-minimize', (event) => {
+  ipcMain.on('window-minimize', event => {
     const win = event.sender.getOwnerBrowserWindow();
     if (win) win.minimize();
   });
-  ipcMain.on('window-maximize', (event) => {
+  ipcMain.on('window-maximize', event => {
     const win = event.sender.getOwnerBrowserWindow();
     if (win) {
       if (win.isMaximized()) win.unmaximize();
       else win.maximize();
     }
   });
-  ipcMain.on('window-close', (event) => {
+  ipcMain.on('window-close', event => {
     const win = event.sender.getOwnerBrowserWindow();
     if (win) win.close();
   });
   ipcMain.on('open-discord-login', () => {
-    open(ENDPOINT + "auth/discord");
+    open(ENDPOINT + 'auth/discord');
   });
   ipcMain.on('open-google-login', () => {
-    open(ENDPOINT + "auth/google");
+    open(ENDPOINT + 'auth/google');
   });
   ipcMain.on('open-email-login', () => {
-    open(ENDPOINT + "transmitToken?from=launcher");
+    open(ENDPOINT + 'transmitToken?from=launcher');
   });
   app.on('activate', () => {
     if (mainWindow === null) mainWindow = createMainWindow();

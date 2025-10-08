@@ -4,7 +4,7 @@ updateElectronApp();
 import path from 'path';
 import ws from 'windows-shortcuts';
 import { app } from 'electron';
-import { startApp } from "./app/app.js";
+import { startApp } from './app/app.js';
 startApp();
 
 const exePath = process.execPath;

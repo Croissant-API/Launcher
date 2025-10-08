@@ -9,7 +9,7 @@ import { checkInstallationStatus } from './games.js';
 import { devEnv } from './mainWindow.js';
 
 export const PORT = 3333;
-const ENDPOINT = devEnv ? "http://localhost:8580" : "https://croissant-api.fr";
+const ENDPOINT = devEnv ? 'http://localhost:8580' : 'https://croissant-api.fr';
 
 export const startServer = () => {
   const server = express();
@@ -22,13 +22,13 @@ export const startServer = () => {
       return;
     }
     try {
-      const response = await fetch("https://croissant-api.fr/api/games/list/@me", {
-        method: "GET",
+      const response = await fetch('https://croissant-api.fr/api/games/list/@me', {
+        method: 'GET',
         headers: {
-          accept: "application/json",
+          accept: 'application/json',
           Authorization: token,
-          "Content-Type": "application/json",
-        }
+          'Content-Type': 'application/json',
+        },
       });
       const gamesList = await response.json();
       if (!Array.isArray(gamesList)) {
@@ -52,21 +52,15 @@ export const startServer = () => {
   });
 
   server.use((req, res) => {
-    
     const cacheDir = path.join(process.cwd(), 'offline-cache');
     if (!fs.existsSync(cacheDir)) {
       fs.mkdirSync(cacheDir, { recursive: true });
     }
 
-    
-    
     if (!isOnline()) {
-      
       let filePath = path.join(cacheDir, req.path);
 
-      
       if (!fs.existsSync(filePath)) {
-        
         const dir = path.dirname(filePath);
         const base = path.basename(filePath);
         if (fs.existsSync(dir)) {
@@ -86,21 +80,19 @@ export const startServer = () => {
 
     console.log(`Fetching resource: ${req.path}`);
 
-    
     const url = `${ENDPOINT}${req.path}`;
-    
+
     const { host, ...forwardHeaders } = req.headers;
-    fetch(url, { method: req.method, headers: { ...forwardHeaders } }).then(async (response) => {
+    fetch(url, { method: req.method, headers: { ...forwardHeaders } }).then(async response => {
       if (!response.ok) {
         res.status(response.status).send('Error fetching resource');
         return;
       }
-      
+
       const contentType = response.headers.get('content-type');
       let ext = mime.extension(contentType) || '';
       let filePath = path.join(cacheDir, req.path);
 
-      
       if (ext && !path.extname(filePath)) {
         filePath += '.' + ext;
       }
@@ -118,5 +110,3 @@ export const startServer = () => {
 };
 
 export default startServer;
-
-

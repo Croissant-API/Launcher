@@ -1,133 +1,121 @@
-import { spawn } from "child_process";
-import RPC from "discord-rpc";
-import fs from "fs";
-import path from "path";
-import { WebSocketServer } from "ws";
-import { checkInstallationStatus } from "./games.js";
-import { detect, update } from "./smart-update.js";
+import { spawn } from 'child_process';
+import RPC from 'discord-rpc';
+import fs from 'fs';
+import path from 'path';
+import { WebSocketServer } from 'ws';
+import { checkInstallationStatus } from './games.js';
+import { detect, update } from './smart-update.js';
 
 const now = new Date();
-const clientId = "1324530344900431923";
-const rpc = new RPC.Client({ transport: "ipc" });
+const clientId = '1324530344900431923';
+const rpc = new RPC.Client({ transport: 'ipc' });
 let gamesDir;
-if (process.platform === "linux") {
-  gamesDir = path.join(process.env.HOME, ".croissant-launcher", "games");
-} else if (process.platform === "darwin") {
-  gamesDir = path.join(
-    process.env.HOME,
-    "Library",
-    "Application Support",
-    "Croissant-Launcher",
-    "games"
-  );
+if (process.platform === 'linux') {
+  gamesDir = path.join(process.env.HOME, '.croissant-launcher', 'games');
+} else if (process.platform === 'darwin') {
+  gamesDir = path.join(process.env.HOME, 'Library', 'Application Support', 'Croissant-Launcher', 'games');
 } else {
-  
-  gamesDir = path.join(process.env.APPDATA, "Croissant-Launcher", "games");
+  gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 }
 
 let actualConnection = null;
 
 rpc.login({ clientId }).catch(console.error);
-rpc.on("ready", () => {
-  rpc.subscribe("ACTIVITY_JOIN_REQUEST");
-  rpc.on("ACTIVITY_JOIN_REQUEST", ({ user }) => {
+rpc.on('ready', () => {
+  rpc.subscribe('ACTIVITY_JOIN_REQUEST');
+  rpc.on('ACTIVITY_JOIN_REQUEST', ({ user }) => {
     rpc.sendJoinInvite(user.id);
   });
-  rpc.subscribe("ACTIVITY_JOIN");
-  rpc.on("ACTIVITY_JOIN", ({ secret }) => {
+  rpc.subscribe('ACTIVITY_JOIN');
+  rpc.on('ACTIVITY_JOIN', ({ secret }) => {
     //joinLobby(secret.split("secret")[0], mainWindow);
     actualConnection.send(
       JSON.stringify({
-        action: "joinLobby",
-        lobbyId: secret.split("secret")[0],
+        action: 'joinLobby',
+        lobbyId: secret.split('secret')[0],
       })
     );
   });
 });
 
-rpc.on("error", (error) => {
-  console.error("Discord RPC Error:", error);
+rpc.on('error', error => {
+  console.error('Discord RPC Error:', error);
 });
 
-rpc.on("disconnected", () => {});
+rpc.on('disconnected', () => {});
 
 export function setupWebSocket() {
   const wss = new WebSocketServer({ port: 8081 });
-  console.log("WebSocket server started on ws://localhost:8081");
+  console.log('WebSocket server started on ws://localhost:8081');
 
-  wss.on("connection", (ws) => {
-    ws.send(JSON.stringify({ action: "serverReady" }));
+  wss.on('connection', ws => {
+    ws.send(JSON.stringify({ action: 'serverReady' }));
     actualConnection = ws;
 
-    ws.on("message", async (msg) => {
+    ws.on('message', async msg => {
       try {
         const data = JSON.parse(msg);
 
-        
-        if (data.action === "downloadGame") {
+        if (data.action === 'downloadGame') {
           const { gameId, token } = data;
           try {
             const needs = await detect(gameId, token);
             if (needs) {
-              await update(gameId, (percent) => {
-                ws.send(
-                  JSON.stringify({
-                    action: "downloadProgress",
-                    gameId,
-                    percent,
-                  })
-                );
-              }, token);
-              ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
+              await update(
+                gameId,
+                percent => {
+                  ws.send(
+                    JSON.stringify({
+                      action: 'downloadProgress',
+                      gameId,
+                      percent,
+                    })
+                  );
+                },
+                token
+              );
+              ws.send(JSON.stringify({ action: 'downloadComplete', gameId }));
             } else {
-              ws.send(JSON.stringify({ action: "alreadyInstalled", gameId }));
+              ws.send(JSON.stringify({ action: 'alreadyInstalled', gameId }));
             }
           } catch (e) {
             console.error(e);
-            ws.send(JSON.stringify({ action: "error", message: e.message }));
+            ws.send(JSON.stringify({ action: 'error', message: e.message }));
           }
         }
 
-        
-        if (data.action === "playGame") {
+        if (data.action === 'playGame') {
           const { gameId, playerId, verificationKey } = data;
-          ws.send(JSON.stringify({ action: "playing", gameId }));
-          const game = await fetch(
-            `https://croissant-api.fr/api/games/${gameId}`
-          ).then((res) => res.json());
-          const gameName = game.name || "Unknown Game";
+          ws.send(JSON.stringify({ action: 'playing', gameId }));
+          const game = await fetch(`https://croissant-api.fr/api/games/${gameId}`).then(res => res.json());
+          const gameName = game.name || 'Unknown Game';
 
           const gamePath = path.join(gamesDir, gameId);
 
-          
-          if (process.platform === "linux" || process.platform === "darwin") {
+          if (process.platform === 'linux' || process.platform === 'darwin') {
             try {
-              const { spawnSync } = require("child_process");
-              spawnSync("chown", ["-R", process.env.USER, gamePath]);
-            } catch (e) {
-              
-            }
+              const { spawnSync } = require('child_process');
+              spawnSync('chown', ['-R', process.env.USER, gamePath]);
+            } catch (e) {}
           }
 
           let launchFile = null;
-          const candidates = [".exe", "index.js", "index.ts", "index.html"];
+          const candidates = ['.exe', 'index.js', 'index.ts', 'index.html'];
           const files = fs.readdirSync(gamePath);
           for (const candidate of candidates) {
-            if (candidate === ".exe") {
-              
+            if (candidate === '.exe') {
               const exePath = findLargestExe(gamePath);
               if (exePath) {
                 launchFile = exePath;
                 break;
               }
             } else {
-              
               const filePath = path.join(gamePath, candidate);
               if (fs.existsSync(filePath)) {
                 launchFile = filePath;
                 break;
               }
-              
+
               for (const dir of files) {
                 const subPath = path.join(gamePath, dir);
                 if (fs.statSync(subPath).isDirectory()) {
@@ -144,244 +132,195 @@ export function setupWebSocket() {
           if (launchFile) {
             let proc;
             const onExit = () => {
-              ws.send(JSON.stringify({ action: "closeGame", gameId }));
+              ws.send(JSON.stringify({ action: 'closeGame', gameId }));
             };
-            
-            if (launchFile.endsWith(".exe")) {
+
+            if (launchFile.endsWith('.exe')) {
               let proc;
-              const exeArgs = [
-                launchFile,
-                `--croissantId=${playerId}`,
-                `--croissantVerificationKey=${verificationKey}`,
-              ];
-              const opts = { cwd: gamePath, detached: true, stdio: "ignore" };
+              const exeArgs = [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`];
+              const opts = { cwd: gamePath, detached: true, stdio: 'ignore' };
               let cmd, args;
-              if (
-                process.platform === "linux" ||
-                process.platform === "darwin"
-              ) {
-                cmd = "wine";
+              if (process.platform === 'linux' || process.platform === 'darwin') {
+                cmd = 'wine';
                 args = exeArgs;
               } else {
                 cmd = launchFile;
                 args = exeArgs.slice(1);
               }
 
-              
               proc = await trySpawnWithFallback(cmd, args, opts, onExit);
 
-              
               if (!proc) {
-                if (
-                  process.platform === "linux" ||
-                  process.platform === "darwin"
-                ) {
-                  proc = spawn("wine", [launchFile], opts);
+                if (process.platform === 'linux' || process.platform === 'darwin') {
+                  proc = spawn('wine', [launchFile], opts);
                 } else {
                   proc = spawn(launchFile, [], opts);
                 }
                 proc.unref();
-                proc.on("exit", onExit);
+                proc.on('exit', onExit);
               } else {
-                proc.on("exit", onExit);
+                proc.on('exit', onExit);
               }
-            } else if (launchFile.endsWith(".js")) {
-              proc = spawn(
-                process.execPath,
-                [
-                  launchFile,
-                  `--croissantId=${playerId}`,
-                  `--croissantVerificationKey=${verificationKey}`,
-                ],
-                { cwd: gamePath, detached: true, stdio: "ignore" }
-              );
+            } else if (launchFile.endsWith('.js')) {
+              proc = spawn(process.execPath, [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`], { cwd: gamePath, detached: true, stdio: 'ignore' });
               proc.unref();
-              proc.on("exit", onExit);
-            } else if (launchFile.endsWith(".ts")) {
-              proc = spawn(
-                "ts-node",
-                [
-                  launchFile,
-                  `--croissantId=${playerId}`,
-                  `--croissantVerificationKey=${verificationKey}`,
-                ],
-                { cwd: gamePath, detached: true, stdio: "ignore" }
-              );
+              proc.on('exit', onExit);
+            } else if (launchFile.endsWith('.ts')) {
+              proc = spawn('ts-node', [launchFile, `--croissantId=${playerId}`, `--croissantVerificationKey=${verificationKey}`], { cwd: gamePath, detached: true, stdio: 'ignore' });
               proc.unref();
-              proc.on("exit", onExit);
+              proc.on('exit', onExit);
             }
           } else {
             ws.send(
               JSON.stringify({
-                action: "error",
-                message: "No launchable file found for game " + gameId,
+                action: 'error',
+                message: 'No launchable file found for game ' + gameId,
               })
             );
-            ws.send(JSON.stringify({ action: "closeGame", gameId }));
+            ws.send(JSON.stringify({ action: 'closeGame', gameId }));
           }
         }
 
-        
-        if (data.action === "closeGame") {
+        if (data.action === 'closeGame') {
           const { gameId } = data;
-          ws.send(JSON.stringify({ action: "closed", gameId }));
+          ws.send(JSON.stringify({ action: 'closed', gameId }));
         }
 
-        
-        if (data.action === "checkInstallationStatus") {
+        if (data.action === 'checkInstallationStatus') {
           const { gameId } = data;
           const status = await checkInstallationStatus(gameId, data.token);
-          ws.send(JSON.stringify({ action: "status", gameId, status }));
+          ws.send(JSON.stringify({ action: 'status', gameId, status }));
         }
 
-        
-        if (data.action === "listGames") {
-          const games = fs.readdirSync(gamesDir).map((gameId) => ({
+        if (data.action === 'listGames') {
+          const games = fs.readdirSync(gamesDir).map(gameId => ({
             gameId,
-            state: fs.existsSync(path.join(gamesDir, gameId))
-              ? "installed"
-              : "not_installed",
+            state: fs.existsSync(path.join(gamesDir, gameId)) ? 'installed' : 'not_installed',
           }));
-          ws.send(JSON.stringify({ action: "gamesList", games }));
+          ws.send(JSON.stringify({ action: 'gamesList', games }));
         }
 
-        
-        if (data.action === "deleteGame") {
+        if (data.action === 'deleteGame') {
           const { gameId } = data;
           const dest = path.join(gamesDir, gameId);
           if (fs.existsSync(dest)) {
             fs.rmdirSync(dest, { recursive: true });
-            ws.send(JSON.stringify({ action: "deleteComplete", gameId }));
+            ws.send(JSON.stringify({ action: 'deleteComplete', gameId }));
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        
-        if (data.action === "updateGame") {
+        if (data.action === 'updateGame') {
           const { gameId, token } = data;
           const dest = path.join(gamesDir, gameId);
           if (!fs.existsSync(dest)) {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
             return;
           }
           try {
             const needs = await detect(gameId, token);
             if (needs) {
-              await update(gameId, (percent) => {
-                ws.send(
-                  JSON.stringify({
-                    action: "updateProgress",
-                    gameId,
-                    percent,
-                  })
-                );
-              }, token);
-              ws.send(JSON.stringify({ action: "updateComplete", gameId }));
+              await update(
+                gameId,
+                percent => {
+                  ws.send(
+                    JSON.stringify({
+                      action: 'updateProgress',
+                      gameId,
+                      percent,
+                    })
+                  );
+                },
+                token
+              );
+              ws.send(JSON.stringify({ action: 'updateComplete', gameId }));
             } else {
-              ws.send(JSON.stringify({ action: "alreadyUpToDate", gameId }));
+              ws.send(JSON.stringify({ action: 'alreadyUpToDate', gameId }));
             }
           } catch (e) {
-            ws.send(JSON.stringify({ action: "error", message: e.message }));
+            ws.send(JSON.stringify({ action: 'error', message: e.message }));
           }
         }
 
-        
-        if (data.action === "getGameInfo") {
+        if (data.action === 'getGameInfo') {
           const { gameId } = data;
           const dest = path.join(gamesDir, gameId);
           if (fs.existsSync(dest)) {
             const stats = fs.statSync(dest);
-            ws.send(
-              JSON.stringify({ action: "gameInfo", gameId, size: stats.size })
-            );
+            ws.send(JSON.stringify({ action: 'gameInfo', gameId, size: stats.size }));
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        
-        if (data.action === "getGameIcon") {
+        if (data.action === 'getGameIcon') {
           const { gameId } = data;
-          const iconPath = path.join(gamesDir, gameId, "icon.png");
+          const iconPath = path.join(gamesDir, gameId, 'icon.png');
           if (fs.existsSync(iconPath)) {
             const iconBuffer = fs.readFileSync(iconPath);
             ws.send(
               JSON.stringify({
-                action: "gameIcon",
+                action: 'gameIcon',
                 gameId,
-                icon: iconBuffer.toString("base64"),
+                icon: iconBuffer.toString('base64'),
               })
             );
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        
-        if (data.action === "getGameDescription") {
+        if (data.action === 'getGameDescription') {
           const { gameId } = data;
-          const descPath = path.join(gamesDir, gameId, "description.txt");
+          const descPath = path.join(gamesDir, gameId, 'description.txt');
           if (fs.existsSync(descPath)) {
-            const description = fs.readFileSync(descPath, "utf-8");
-            ws.send(
-              JSON.stringify({ action: "gameDescription", gameId, description })
-            );
+            const description = fs.readFileSync(descPath, 'utf-8');
+            ws.send(JSON.stringify({ action: 'gameDescription', gameId, description }));
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        
-        if (data.action === "getGameVersion") {
+        if (data.action === 'getGameVersion') {
           const { gameId } = data;
-          const versionPath = path.join(gamesDir, gameId, "version.txt");
+          const versionPath = path.join(gamesDir, gameId, 'version.txt');
           if (fs.existsSync(versionPath)) {
-            const version = fs.readFileSync(versionPath, "utf-8");
-            ws.send(JSON.stringify({ action: "gameVersion", gameId, version }));
+            const version = fs.readFileSync(versionPath, 'utf-8');
+            ws.send(JSON.stringify({ action: 'gameVersion', gameId, version }));
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        
-        if (data.action === "getGameSize") {
+        if (data.action === 'getGameSize') {
           const { gameId } = data;
           const sizePath = path.join(gamesDir, gameId);
           if (fs.existsSync(sizePath)) {
             const stats = fs.statSync(sizePath);
-            ws.send(
-              JSON.stringify({ action: "gameSize", gameId, size: stats.size })
-            );
+            ws.send(JSON.stringify({ action: 'gameSize', gameId, size: stats.size }));
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        
-        if (data.action === "getGameState") {
+        if (data.action === 'getGameState') {
           const { gameId } = data;
-          const state = fs.existsSync(path.join(gamesDir, gameId))
-            ? "installed"
-            : "not_installed";
-          ws.send(JSON.stringify({ action: "gameState", gameId, state }));
+          const state = fs.existsSync(path.join(gamesDir, gameId)) ? 'installed' : 'not_installed';
+          ws.send(JSON.stringify({ action: 'gameState', gameId, state }));
         }
 
-        
-        if (data.action === "getGamePath") {
+        if (data.action === 'getGamePath') {
           const { gameId } = data;
           const gamePath = path.join(gamesDir, gameId);
           if (fs.existsSync(gamePath)) {
-            ws.send(
-              JSON.stringify({ action: "gamePath", gameId, path: gamePath })
-            );
+            ws.send(JSON.stringify({ action: 'gamePath', gameId, path: gamePath }));
           } else {
-            ws.send(JSON.stringify({ action: "notFound", gameId }));
+            ws.send(JSON.stringify({ action: 'notFound', gameId }));
           }
         }
 
-        if (data.action === "setActivity") {
-          
+        if (data.action === 'setActivity') {
           rpc.setActivity({
             ...data.activity,
             partySize: parseInt(data.activity.partySize || 0),
@@ -389,7 +328,7 @@ export function setupWebSocket() {
           });
         }
       } catch (err) {
-        ws.send(JSON.stringify({ action: "error", message: err.message }));
+        ws.send(JSON.stringify({ action: 'error', message: err.message }));
       }
     });
   });
@@ -407,7 +346,6 @@ function findLargestExe(dir) {
       return;
     }
     for (const entry of entries) {
-      
       if (entry.startsWith('.')) continue;
       const entryPath = path.join(currentDir, entry);
       let stat;
@@ -416,7 +354,7 @@ function findLargestExe(dir) {
       } catch (e) {
         continue;
       }
-      if (stat.isFile() && entry.endsWith(".exe")) {
+      if (stat.isFile() && entry.endsWith('.exe')) {
         if (stat.size > largest.size) {
           largest = { path: entryPath, size: stat.size };
         }
@@ -431,29 +369,26 @@ function findLargestExe(dir) {
 }
 
 async function trySpawnWithFallback(cmd, args, opts, onExit) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let proc = spawn(cmd, args, opts);
     let exited = false;
     let timer = setTimeout(() => {
       if (!exited) {
-        
         proc.unref();
         resolve(proc);
       }
-    }, 10000); 
+    }, 10000);
 
-    proc.on("exit", (code) => {
+    proc.on('exit', code => {
       exited = true;
       clearTimeout(timer);
-      
+
       resolve(null);
     });
-    proc.on("error", () => {
+    proc.on('error', () => {
       exited = true;
       clearTimeout(timer);
       resolve(null);
     });
   });
 }
-
-

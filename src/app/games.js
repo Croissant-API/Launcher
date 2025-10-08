@@ -4,16 +4,16 @@ import simpleGit from 'simple-git';
 import { detect } from './smart-update.js';
 
 let gamesDir;
-console.log("Initializing games directory...");
-console.log("Current platform:", process.platform);
+console.log('Initializing games directory...');
+console.log('Current platform:', process.platform);
 if (process.platform === 'linux') {
   gamesDir = path.join(process.env.HOME, '.croissant-launcher', 'games');
 } else if (process.platform === 'darwin') {
   gamesDir = path.join(process.env.HOME, 'Library', 'Application Support', 'Croissant-Launcher', 'games');
-} else { 
+} else {
   gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 }
-console.log("Games directory set to:", gamesDir);
+console.log('Games directory set to:', gamesDir);
 
 export const ensureGamesDir = () => {
   if (!fs.existsSync(gamesDir)) {
@@ -34,7 +34,7 @@ export const checkInstallationStatus = async (gameId, token) => {
           return 'installed';
         }
       } catch (e) {
-        return 'installed'; 
+        return 'installed';
       }
     }
   }
@@ -45,10 +45,8 @@ export const downloadGame = async (gameId, downloadUrl) => {
   const dest = path.join(gamesDir, gameId);
   if (!fs.existsSync(dest)) {
     await simpleGit().clone(downloadUrl, dest);
-    return { action: "downloadComplete", gameId };
+    return { action: 'downloadComplete', gameId };
   } else {
-    return { action: "alreadyInstalled", gameId };
+    return { action: 'alreadyInstalled', gameId };
   }
 };
-
-
