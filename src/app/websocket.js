@@ -65,9 +65,9 @@ export function setupWebSocket() {
 
         
         if (data.action === "downloadGame") {
-          const { gameId } = data;
+          const { gameId, token } = data;
           try {
-            const needs = await detect(gameId);
+            const needs = await detect(gameId, token);
             if (needs) {
               await update(gameId, (percent) => {
                 ws.send(
@@ -77,12 +77,13 @@ export function setupWebSocket() {
                     percent,
                   })
                 );
-              });
+              }, token);
               ws.send(JSON.stringify({ action: "downloadComplete", gameId }));
             } else {
               ws.send(JSON.stringify({ action: "alreadyInstalled", gameId }));
             }
           } catch (e) {
+            console.error(e);
             ws.send(JSON.stringify({ action: "error", message: e.message }));
           }
         }
@@ -229,7 +230,7 @@ export function setupWebSocket() {
         
         if (data.action === "checkInstallationStatus") {
           const { gameId } = data;
-          const status = await checkInstallationStatus(gameId);
+          const status = await checkInstallationStatus(gameId, data.token);
           ws.send(JSON.stringify({ action: "status", gameId, status }));
         }
 
@@ -258,14 +259,14 @@ export function setupWebSocket() {
 
         
         if (data.action === "updateGame") {
-          const { gameId } = data;
+          const { gameId, token } = data;
           const dest = path.join(gamesDir, gameId);
           if (!fs.existsSync(dest)) {
             ws.send(JSON.stringify({ action: "notFound", gameId }));
             return;
           }
           try {
-            const needs = await detect(gameId);
+            const needs = await detect(gameId, token);
             if (needs) {
               await update(gameId, (percent) => {
                 ws.send(
@@ -275,7 +276,7 @@ export function setupWebSocket() {
                     percent,
                   })
                 );
-              });
+              }, token);
               ws.send(JSON.stringify({ action: "updateComplete", gameId }));
             } else {
               ws.send(JSON.stringify({ action: "alreadyUpToDate", gameId }));

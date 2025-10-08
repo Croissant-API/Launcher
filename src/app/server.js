@@ -1,15 +1,14 @@
-import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import fetch from 'node-fetch'; // Ensure to install node-fetch if not already
-import { fileURLToPath } from 'url';
-import { checkInstallationStatus } from './games.js';
-import isOnline from 'is-online';
+import express from 'express';
 import fs from 'fs';
-import mime from 'mime-types'; // Ajoute en haut du fichier
+import isOnline from 'is-online';
+import mime from 'mime-types';
+import fetch from 'node-fetch';
+import path from 'path';
+import { checkInstallationStatus } from './games.js';
+import { devEnv } from './mainWindow.js';
 
 export const PORT = 3333;
-import { devEnv } from './mainWindow.js';
 const ENDPOINT = devEnv ? "http://localhost:8580" : "https://croissant-api.fr";
 
 export const startServer = () => {
@@ -37,10 +36,12 @@ export const startServer = () => {
         return;
       }
       const games = [];
-      for (const game of gamesList) {
+      const statePromises = gamesList.map(game => checkInstallationStatus(game.gameId, token));
+      const states = await Promise.all(statePromises);
+      for (let i = 0; i < gamesList.length; i++) {
         games.push({
-          ...game,
-          state: await checkInstallationStatus(game.gameId),
+          ...gamesList[i],
+          state: states[i],
         });
       }
 
@@ -51,21 +52,21 @@ export const startServer = () => {
   });
 
   server.use((req, res) => {
-    // Nous allons d abord créer le dossier offline-cache s il n existe pas
+    
     const cacheDir = path.join(process.cwd(), 'offline-cache');
     if (!fs.existsSync(cacheDir)) {
       fs.mkdirSync(cacheDir, { recursive: true });
     }
 
-    // Si offline, on sert le fichier depuis le cache
-    // Vérifier si l'utilisateur est offline
+    
+    
     if (!isOnline()) {
-      // User is not online, we serve from cache if possible
+      
       let filePath = path.join(cacheDir, req.path);
 
-      // If file doesn't exist, try to deduce extension from available files
+      
       if (!fs.existsSync(filePath)) {
-        // Get all files in the directory matching the base name
+        
         const dir = path.dirname(filePath);
         const base = path.basename(filePath);
         if (fs.existsSync(dir)) {
@@ -85,21 +86,21 @@ export const startServer = () => {
 
     console.log(`Fetching resource: ${req.path}`);
 
-    // Si online, on fetch depuis le endpoint et on met en cache
+    
     const url = `${ENDPOINT}${req.path}`;
-    // Remove 'host' header to avoid SSL certificate mismatch
+    
     const { host, ...forwardHeaders } = req.headers;
     fetch(url, { method: req.method, headers: { ...forwardHeaders } }).then(async (response) => {
       if (!response.ok) {
         res.status(response.status).send('Error fetching resource');
         return;
       }
-      // Déduire l’extension à partir du type MIME
+      
       const contentType = response.headers.get('content-type');
       let ext = mime.extension(contentType) || '';
       let filePath = path.join(cacheDir, req.path);
 
-      // Si le chemin n’a pas déjà d’extension, on l’ajoute
+      
       if (ext && !path.extname(filePath)) {
         filePath += '.' + ext;
       }
@@ -117,3 +118,5 @@ export const startServer = () => {
 };
 
 export default startServer;
+
+

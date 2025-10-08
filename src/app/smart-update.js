@@ -12,19 +12,24 @@ if (process.platform === 'linux') {
   gamesDir = path.join(process.env.APPDATA, 'Croissant-Launcher', 'games');
 }
 
-function httpsRequest(url, options = {}) {
+function httpsRequest(url, options = {}, token) {
+  if (token) {
+    options.headers = options.headers || {};
+    options.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    options.headers['User-Agent'] = 'Croissant-Launcher/1.0';
+  }
   return new Promise((resolve, reject) => {
     https
-      .get(url, options, (res) => {
+      .get(url, options, res => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          return httpsRequest(res.headers.location, options).then(resolve).catch(reject);
+          return httpsRequest(res.headers.location, options, token).then(resolve).catch(reject);
         }
         if (res.statusCode !== 200 && res.statusCode !== 206) {
           reject(new Error(`HTTP ${res.statusCode}`));
           return;
         }
         const chunks = [];
-        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('data', chunk => chunks.push(chunk));
         res.on('end', () => resolve({ buffer: Buffer.concat(chunks), headers: res.headers }));
       })
       .on('error', reject);
@@ -97,33 +102,45 @@ function parseZipCentralDirectory(buffer) {
   return files;
 }
 
-async function getRemoteZipStructure(url) {
-  const headRes = await httpsRequest(url, { method: 'HEAD' });
+async function getRemoteZipStructure(url, token) {
+  const headRes = await httpsRequest(url, { method: 'HEAD' }, token);
   const totalSize = parseInt(headRes.headers['content-length'] || '0');
 
   if (!headRes.headers['accept-ranges']) {
     throw new Error('Le serveur ne supporte pas les Range requests');
   }
 
-  const chunkSize = Math.min(65536, totalSize);
+  const chunkSize = Math.min(262144, totalSize);
   const rangeStart = totalSize - chunkSize;
 
   const { buffer } = await httpsRequest(url, {
     headers: { Range: `bytes=${rangeStart}-${totalSize - 1}` },
-  });
+  }, token);
 
-  const files = parseZipCentralDirectory(buffer);
+  let files = parseZipCentralDirectory(buffer);
+
+  
+  if (url.includes('github.com') && url.includes('/archive/refs/heads/')) {
+    const parts = url.split('/');
+    const repo = parts[4];
+    const branch = parts[7].split('.')[0]; 
+    const prefix = `${repo}-${branch}/`;
+    files = files.map(f => ({
+      ...f,
+      name: f.name.startsWith(prefix) ? f.name.slice(prefix.length) : f.name
+    }));
+  }
 
   return { files, totalSize };
 }
 
-async function downloadFileFromZip(url, fileInfo) {
+async function downloadFileFromZip(url, fileInfo, token) {
   const start = fileInfo.localHeaderOffset;
   const end = start + 30 + 1024;
 
   const { buffer: headerBuf } = await httpsRequest(url, {
     headers: { Range: `bytes=${start}-${end}` },
-  });
+  }, token);
 
   const fileNameLength = headerBuf.readUInt16LE(26);
   const extraFieldLength = headerBuf.readUInt16LE(28);
@@ -134,7 +151,7 @@ async function downloadFileFromZip(url, fileInfo) {
 
   const { buffer: dataBuf } = await httpsRequest(url, {
     headers: { Range: `bytes=${actualStart}-${actualEnd}` },
-  });
+  }, token);
 
   const compressionMethod = headerBuf.readUInt16LE(8);
 
@@ -147,56 +164,70 @@ async function downloadFileFromZip(url, fileInfo) {
   }
 }
 
-function getGameDownloadUrl(gameId) {
-  return new Promise((resolve, reject) => {
-    const url = `https://croissant-api.fr/api/games/${gameId}`;
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const game = JSON.parse(data);
-          resolve(game.downloadUrl);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
-  });
-}
-
-async function detect(id) {
+async function detect(id, token) {
   const localDir = path.join(gamesDir, id);
   if (!fs.existsSync(localDir)) return true;
   try {
-    const remoteZipUrl = await getGameDownloadUrl(id);
-    const localFiles = listLocalFiles(localDir);
-    const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl);
+
+    if (!token) {
+      throw new Error('Token is required for detection');
+    }
+
+    const remoteZipUrl = 'https://croissant-api.fr/api/games/' + id + '/download';
+    let localFiles = listLocalFiles(localDir);
+    
+    if (remoteZipUrl.includes('github.com')) {
+      let gitCount = 0;
+      for (const [key] of localFiles) {
+        if (key.startsWith('.git/')) {
+          localFiles.delete(key);
+          gitCount++;
+        }
+      }
+    }
+    
+    const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl, token);
     let needUpdate = false;
     for (const remoteFile of remoteFiles) {
       if (remoteFile.name.endsWith('/')) continue;
       const localFile = localFiles.get(remoteFile.name);
-      if (!localFile || localFile.size !== remoteFile.uncompressedSize) {
+      if (!localFile) {
+        needUpdate = true;
+        break;
+      }
+      if (localFile.size !== remoteFile.uncompressedSize) {
         needUpdate = true;
         break;
       }
       if (localFile) localFiles.delete(remoteFile.name);
     }
-    if (localFiles.size > 0) needUpdate = true;
+    if (localFiles.size > 0) {
+      needUpdate = true;
+    }
     return needUpdate;
   } catch (e) {
-    return true;
+    return false;
   }
 }
 
-async function update(id, cb) {
+async function update(id, cb, token) {
   const localDir = path.join(gamesDir, id);
   if (!fs.existsSync(localDir)) {
     fs.mkdirSync(localDir, { recursive: true });
   }
-  const remoteZipUrl = await getGameDownloadUrl(id);
-  const localFiles = listLocalFiles(localDir);
-  const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl);
+  const remoteZipUrl = 'https://croissant-api.fr/api/games/' + id + '/download';
+  let localFiles = listLocalFiles(localDir);
+  
+  
+  if (remoteZipUrl.includes('github.com')) {
+    for (const [key] of localFiles) {
+      if (key.startsWith('.git/')) {
+        localFiles.delete(key);
+      }
+    }
+  }
+  
+  const { files: remoteFiles } = await getRemoteZipStructure(remoteZipUrl, token);
   const toDownload = [];
   const toDelete = [];
   for (const remoteFile of remoteFiles) {
@@ -212,7 +243,7 @@ async function update(id, cb) {
   for (const localFileName of localFiles.keys()) {
     toDelete.push(localFileName);
   }
-  
+
   for (const fileName of toDelete) {
     const fullPath = path.join(localDir, fileName);
     if (fs.existsSync(fullPath)) {
@@ -227,7 +258,7 @@ async function update(id, cb) {
   let downloadedBytes = 0;
   for (let i = 0; i < toDownload.length; i++) {
     const file = toDownload[i];
-    const content = await downloadFileFromZip(remoteZipUrl, file);
+    const content = await downloadFileFromZip(remoteZipUrl, file, token);
     const fullPath = path.join(localDir, file.name);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
     fs.writeFileSync(fullPath, content);

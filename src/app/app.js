@@ -1,12 +1,11 @@
-import { app, shell } from 'electron';
-import { startServer } from './server.js';
+import { app, ipcMain } from 'electron';
+import open from 'open';
+import path from 'path';
+import { ensureGamesDir } from './games.js';
 import { createMainWindow } from './mainWindow.js';
+import { startServer } from './server.js';
 import { createTray } from './tray.js';
 import { setupWebSocket } from './websocket.js';
-import { ensureGamesDir } from './games.js';
-import { ipcMain } from 'electron';
-import path from 'path';
-import open from 'open';
 
 import { devEnv } from './mainWindow.js';
 const ENDPOINT = devEnv ? "http://localhost:8580/" : "https://croissant-api.fr/";

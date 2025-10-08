@@ -6,10 +6,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const devEnv = false;
-const PORT_TO_SERVE = "https://croissant-api.fr/launcher/home"
-// const PORT_TO_SERVE = "http://localhost:3333/launcher/home"
 
-// Prevent second instance
+const PORT_TO_SERVE = "http://localhost:8580/launcher/home"
+
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
     app.quit();
@@ -27,7 +26,7 @@ export function createMainWindow() {
         titleBarStyle: 'hidden',
         ...(process.platform !== 'darwin' ? { titleBarOverlay: true } : {}),
         autoHideMenuBar: true,
-        icon: path.join(__dirname, 'icon.png'), // Use your icon path
+        icon: path.join(__dirname, 'icon.png'), 
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -37,7 +36,7 @@ export function createMainWindow() {
     });
 
     win.maximize();
-    win.loadURL(PORT_TO_SERVE); // Adjust the URL as needed
+    win.loadURL(PORT_TO_SERVE); 
 
     win.setTitleBarOverlay({
         color: "rgba(0, 0, 0, 0)",
@@ -45,7 +44,7 @@ export function createMainWindow() {
         height: 30,
     });
 
-    // Hide window instead of closing
+    
     win.on('close', (event) => {
         event.preventDefault();
         win.hide();
@@ -53,3 +52,5 @@ export function createMainWindow() {
 
     return win;
 }
+
+
