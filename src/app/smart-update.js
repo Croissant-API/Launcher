@@ -263,7 +263,7 @@ async function detect(id, token) {
   const entry = contentLengths[remoteZipUrl];
   if (!contentLengths[remoteZipUrl] || contentLengths[remoteZipUrl].contentLength !== newContentLength) {
     saveContentLength(remoteZipUrl, newContentLength);
-    return false;
+    return true;
   }
   return !entry.isUpdatedSinceLastCheck;
 }
