@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
 import { detect } from './smart-update.js';
+import { isGameLaunched } from './gameState.js';
 
 let gamesDir;
 console.log('Initializing games directory...');
@@ -23,6 +24,9 @@ export const ensureGamesDir = () => {
 
 export const checkInstallationStatus = async (gameId, token) => {
   let status = 'not_installed';
+  if (isGameLaunched(gameId)) {
+    return 'playing';
+  }
   if (fs.existsSync(gamesDir)) {
     const gamePath = path.join(gamesDir, gameId);
     if (fs.existsSync(gamePath)) {

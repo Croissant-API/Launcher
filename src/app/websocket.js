@@ -5,6 +5,7 @@ import path from 'path';
 import { WebSocketServer } from 'ws';
 import { checkInstallationStatus } from './games.js';
 import { detect, update } from './smart-update.js';
+import { addLaunchedGame, removeLaunchedGame, isGameLaunched } from './gameState.js';
 
 const now = new Date();
 const clientId = '1324530344900431923';
@@ -20,6 +21,9 @@ if (process.platform === 'linux') {
 
 let actualConnection = null;
 let procs = [];
+let fileCache = new Map();
+let cacheTimestamps = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 rpc.login({ clientId }).catch(console.error);
 rpc.on('ready', () => {
@@ -87,6 +91,7 @@ export function setupWebSocket() {
 
         if (data.action === 'playGame') {
           const { gameId, playerId, verificationKey } = data;
+          addLaunchedGame(gameId); // Ensure the game is added to launchedGames
           ws.send(JSON.stringify({ action: 'playing', gameId }));
           const game = await fetch(`https://croissant-api.fr/api/games/${gameId}`).then(res => res.json());
           const gameName = game.name || 'Unknown Game';
@@ -135,6 +140,7 @@ export function setupWebSocket() {
             const onExit = () => {
               ws.send(JSON.stringify({ action: 'closeGame', gameId }));
               procs = procs.filter(p => p.gameId !== gameId);
+              removeLaunchedGame(gameId);
             };
 
             if (launchFile.endsWith('.exe')) {
@@ -173,9 +179,14 @@ export function setupWebSocket() {
               proc.on('exit', onExit);
             }
             if (proc) {
-              console.log(`Launched process PID: ${proc.pid} for gameId: ${gameId}`); // Log the PID of the launched process
-              procs.push({ gameId, proc });
-              proc.on('exit', onExit);
+              addLaunchedGame(gameId);
+              procs.push({ gameId, proc, pid: proc.pid }); // Store the PID
+              console.log(`Process launched for gameId: ${gameId}, PID: ${proc.pid}`); // Log process details
+              console.log('Updated processes list:', procs); // Log the updated procs array
+              proc.on('exit', () => {
+                removeLaunchedGame(gameId);
+                onExit();
+              });
             }
           } else {
             ws.send(
@@ -195,21 +206,42 @@ export function setupWebSocket() {
 
         if (data.action === 'stopGame') {
           const { gameId } = data;
+          console.log(`Attempting to stop game with gameId: ${gameId}`);
+          console.log('Current processes:', procs); // Log the current state of procs
+
           const gameProc = procs.find(p => p.gameId === gameId);
           if (gameProc) {
-            const procName = path.basename(gameProc.proc.spawnfile); // Get the executable name
-            const { exec } = require('child_process');
-            exec(`taskkill /f /im ${procName}`, (error, stdout, stderr) => {
-              if (error) {
+            const pid = gameProc.pid; // Retrieve the stored PID
+            if (pid) {
+              console.log(`Found process with PID: ${pid} for gameId: ${gameId}`);
+              const { spawn } = require('child_process');
+              const cmd = process.platform === 'win32' ? 'taskkill' : 'kill';
+              const args = process.platform === 'win32' ? ['/PID', pid, '/F'] : ['-9', pid];
+
+              const killProc = spawn(cmd, args);
+
+              killProc.on('close', code => {
+                if (code === 0) {
+                  console.log(`Successfully stopped process for gameId: ${gameId}`);
+                  procs = procs.filter(p => p.gameId !== gameId);
+                  ws.send(JSON.stringify({ action: 'stopped', gameId }));
+                } else {
+                  console.error(`Failed to stop process for gameId: ${gameId}`);
+                  ws.send(JSON.stringify({ action: 'error', message: `Failed to stop game ${gameId}` }));
+                }
+              });
+
+              killProc.on('error', error => {
                 console.error(`Error stopping process: ${error.message}`);
                 ws.send(JSON.stringify({ action: 'error', message: `Failed to stop game ${gameId}` }));
-                return;
-              }
-              console.log(`Stopped process for gameId: ${gameId}`);
-              procs = procs.filter(p => p.gameId !== gameId);
-              ws.send(JSON.stringify({ action: 'stopped', gameId }));
-            });
+              });
+            } else {
+              console.error(`No PID found for gameId: ${gameId}`);
+              ws.send(JSON.stringify({ action: 'error', message: 'No PID found for game ' + gameId }));
+            }
           } else {
+            console.error(`No running process found for gameId: ${gameId}`);
+            console.log('Current processes:', procs); // Log the current state of procs again
             ws.send(JSON.stringify({ action: 'error', message: 'No running process found for game ' + gameId }));
           }
         }
@@ -221,10 +253,20 @@ export function setupWebSocket() {
         }
 
         if (data.action === 'listGames') {
+          const now = Date.now();
+          if (fileCache.has('games') && now - cacheTimestamps.get('games') < CACHE_DURATION) {
+            ws.send(JSON.stringify({ action: 'gamesList', games: fileCache.get('games') }));
+            return;
+          }
+
           const games = fs.readdirSync(gamesDir).map(gameId => ({
             gameId,
-            state: fs.existsSync(path.join(gamesDir, gameId)) ? 'installed' : 'not_installed',
+            state: isGameLaunched(gameId) ? 'playing' : fs.existsSync(path.join(gamesDir, gameId)) ? 'installed' : 'not_installed',
           }));
+
+          fileCache.set('games', games); // Cache the games list
+          cacheTimestamps.set('games', now); // Update the cache timestamp
+
           ws.send(JSON.stringify({ action: 'gamesList', games }));
         }
 

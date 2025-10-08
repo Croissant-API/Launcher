@@ -118,7 +118,7 @@ function parseZipCentralDirectory(buffer) {
 }
 
 async function getRemoteZipStructure(url, token) {
-  const headRes = await httpsRequest(url, { method: 'HEAD' }, token);
+  const headRes = await httpsRequest(url, { method: 'HEAD', headers: { 'X-Request-Arbo': 'true' } }, token); // Add custom header for arbo request
   const totalSize = parseInt(headRes.headers['content-length'] || '0');
 
   if (!headRes.headers['accept-ranges']) {
@@ -131,7 +131,7 @@ async function getRemoteZipStructure(url, token) {
   const { buffer } = await httpsRequest(
     url,
     {
-      headers: { Range: `bytes=${rangeStart}-${totalSize - 1}` },
+      headers: { Range: `bytes=${rangeStart}-${totalSize - 1}`, 'X-Request-Arbo': 'true' }, // Add custom header for arbo request
     },
     token
   );
@@ -190,9 +190,23 @@ async function downloadFileFromZip(url, fileInfo, token) {
   }
 }
 
+let fileStructureCache = new Map();
+let fileStructureTimestamps = new Map();
+const DETECT_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 async function detect(id, token) {
+  const now = Date.now();
+  if (fileStructureCache.has(id) && now - fileStructureTimestamps.get(id) < DETECT_CACHE_DURATION) {
+    return fileStructureCache.get(id).needsUpdate;
+  }
+
   const localDir = path.join(gamesDir, id);
-  if (!fs.existsSync(localDir)) return true;
+  if (!fs.existsSync(localDir)) {
+    fileStructureCache.set(id, { needsUpdate: true });
+    fileStructureTimestamps.set(id, now);
+    return true;
+  }
+
   try {
     if (!token) {
       throw new Error('Token is required for detection');
@@ -202,11 +216,9 @@ async function detect(id, token) {
     let localFiles = listLocalFiles(localDir);
 
     if (remoteZipUrl.includes('github.com')) {
-      let gitCount = 0;
       for (const [key] of localFiles) {
         if (key.startsWith('.git/')) {
           localFiles.delete(key);
-          gitCount++;
         }
       }
     }
@@ -216,11 +228,7 @@ async function detect(id, token) {
     for (const remoteFile of remoteFiles) {
       if (remoteFile.name.endsWith('/')) continue;
       const localFile = localFiles.get(remoteFile.name);
-      if (!localFile) {
-        needUpdate = true;
-        break;
-      }
-      if (localFile.size !== remoteFile.uncompressedSize) {
+      if (!localFile || localFile.size !== remoteFile.uncompressedSize) {
         needUpdate = true;
         break;
       }
@@ -229,6 +237,9 @@ async function detect(id, token) {
     if (localFiles.size > 0) {
       needUpdate = true;
     }
+
+    fileStructureCache.set(id, { needsUpdate: needUpdate });
+    fileStructureTimestamps.set(id, now);
     return needUpdate;
   } catch (e) {
     return false;

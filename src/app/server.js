@@ -7,6 +7,7 @@ import fetch from 'node-fetch';
 import path from 'path';
 import { checkInstallationStatus } from './games.js';
 import { devEnv } from './mainWindow.js';
+import { isGameLaunched } from './gameState.js';
 
 export const PORT = 3333;
 const ENDPOINT = devEnv ? 'http://localhost:8580' : 'https://croissant-api.fr';
@@ -36,7 +37,12 @@ export const startServer = () => {
         return;
       }
       const games = [];
-      const statePromises = gamesList.map(game => checkInstallationStatus(game.gameId, token));
+      const statePromises = gamesList.map(async game => {
+        if (isGameLaunched(game.gameId)) {
+          return 'playing';
+        }
+        return await checkInstallationStatus(game.gameId, token);
+      });
       const states = await Promise.all(statePromises);
       for (let i = 0; i < gamesList.length; i++) {
         games.push({
